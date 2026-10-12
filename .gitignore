@@ -39,6 +39,10 @@ backend/rag_db/**
 !backend/rag_db/.gitkeep
 !backend/rag_db/README.md
 
+# --- EFSA PDFs (non-personal, but large) ---
+data/efsa_pdfs/**
+!data/efsa_pdfs/**/
+
 # --- ML datasets (non-personal, but large) ---
 ml_data/**
 !ml_data/**/
