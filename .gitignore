@@ -1,0 +1,89 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# --- Environment / secrets ---
+.env
+*.env
+!.env.example
+nginx/ssl/*
+!nginx/ssl/.gitkeep
+
+# --- Model weights (make models) ---
+# Ignore the weights but keep the directory layout and its README: a bare
+# `backend/models/` would stop git descending and the negations below would
+# never apply.
+backend/models/**
+!backend/models/**/
+!backend/models/**/.gitkeep
+!backend/models/README.md
+frontend/public/models/food_gate/*
+!frontend/public/models/food_gate/.gitkeep
+
+# --- Generated vector store (scripts/ingest_efsa_pdfs.py) ---
+backend/rag_db/**
+!backend/rag_db/**/
+!backend/rag_db/.gitkeep
+!backend/rag_db/README.md
+
+# --- ML datasets (non-personal, but large) ---
+ml_data/**
+!ml_data/**/
+!ml_data/**/.gitkeep
+
+# --- Node / frontend ---
+node_modules/
+frontend/dist/
+*.local
+.vite/
+
+# --- Unity ---
+game/unity_project/Library/
+game/unity_project/Temp/
+game/unity_project/Obj/
+game/unity_project/Logs/
+game/unity_project/UserSettings/
+game/webgl_build/Build/*
+!game/webgl_build/Build/.gitkeep
+
+# --- Pilot data (never commit real participant data) ---
+pilot_study/results/*.csv
+pilot_study/results/*.xlsx
+pilot_study/results/raw/
+!pilot_study/results/sus_scores.csv
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- LaTeX build artefacts ---
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+thesis/output/*
+!thesis/output/.gitkeep
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -29,3 +29,54 @@ PWA + ONNX Runtime Web · FastAPI · PostgreSQL + pgvector · Llama-Krikri-8B-In
 ## Status
 
 🚧 Pre-alpha. Architecture v0.4.
+
+## Repository layout
+
+```
+├── docs/            Architecture, API, deployment, GDPR/DPIA, ephemeral processing, content safety
+├── data/            Reference data, version-controlled (EFSA, IOM, CDC, food composition)
+├── backend/         FastAPI app, deterministic rule_engine, ai_pipeline, tests
+├── frontend/        Vue 3 PWA, incl. the in-browser food gate (src/ml/)
+├── game/            Unity card game (project + WebGL build)
+├── nginx/           Reverse proxy; enforces the 1 MB photo limit
+├── scripts/         Data loading, model download, RAG ingestion, Rule 7 verification
+├── ml_data/         Training datasets (gitignored, non-personal only)
+├── notebooks/       Research notebooks
+├── pilot_study/     Protocol, ethics, consent, questionnaires, results
+├── thesis/          LaTeX thesis
+└── paper/           Journal manuscript
+```
+
+Three directories are deliberately absent from version control and are produced
+on the machine that runs the system: `backend/models/` (weights, `make models`),
+`backend/rag_db/` (vector store, `make rag`) and `ml_data/`.
+
+## Setup
+
+Requirements: Docker with the NVIDIA container toolkit, a GPU, Node 22 for
+frontend work, and **swap disabled on the host** — the last one is a
+precondition for the ephemeral-photo guarantee.
+
+```bash
+cp .env.example .env          # fill in every secret
+make models                   # download model weights (see THIRD_PARTY_LICENSES.md)
+make up && make migrate && make seed
+make rag                      # after placing the EFSA PDFs in data/efsa_pdfs/
+make dev
+```
+
+Frontend dev server: `make frontend` (proxies `/api` to the backend).
+
+```bash
+make test                     # backend suite
+make check-ephemeral          # must pass before any participant is enrolled
+make deploy                   # production stack (docker-compose.prod.yml)
+```
+
+`make help` lists every target.
+
+## Licence
+
+Our code is MIT (`LICENSE`). The models, datasets and libraries we build on
+carry their own terms — see `THIRD_PARTY_LICENSES.md`, which also lists the
+obligations we have to honour.

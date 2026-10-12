@@ -1,0 +1,84 @@
+[project]
+name = "pyramid-backend"
+version = "0.4.0"
+description = "PYRAMID backend: API, deterministic rule engine and local AI pipeline"
+requires-python = ">=3.11"
+license = { file = "../LICENSE" }
+
+dependencies = [
+  # --- API ---
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "python-multipart>=0.0.12",
+  # --- Persistence ---
+  "sqlalchemy>=2.0",
+  "alembic>=1.14",
+  "psycopg[binary]>=3.2",
+  # --- Security ---
+  "argon2-cffi>=23.1",
+  "pyjwt>=2.9",
+  "cryptography>=43.0",
+  # --- Reference data and maths ---
+  "pandas>=2.2",
+  "numpy>=1.26",
+  # --- Scheduling (replaces Celery; no Redis in the stack) ---
+  "apscheduler>=3.10",
+  # --- Vision: OliveGemma + NSFW detector ---
+  "torch>=2.5",
+  "transformers>=4.46",
+  "accelerate>=1.1",
+  "pillow>=11.0",
+  # --- Text: Krikri over llama.cpp's HTTP server ---
+  "httpx>=0.27",
+  # --- RAG ---
+  "chromadb>=0.5",
+  "sentence-transformers>=3.2",
+  "pypdf>=5.1",
+  # --- Observability ---
+  "structlog>=24.4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6.0",
+  "httpx>=0.27",
+  "ruff>=0.7",
+  "mypy>=1.13",
+  "types-pyyaml",
+]
+food-gate = [
+  # Only needed by scripts/train_food_gate.py; kept out of the runtime image.
+  "tensorflow>=2.17",
+  "tensorflowjs>=4.22",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "rule_engine", "ai_pipeline"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+  "slow: needs a model loaded",
+  "gpu: needs a GPU",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true

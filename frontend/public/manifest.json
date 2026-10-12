@@ -1,0 +1,12 @@
+{
+  "name": "PYRAMID",
+  "short_name": "PYRAMID",
+  "description": "\u0394\u03b9\u03b1\u03c4\u03c1\u03bf\u03c6\u03b9\u03ba\u03cc \u03b7\u03bc\u03b5\u03c1\u03bf\u03bb\u03cc\u03b3\u03b9\u03bf \u03bc\u03b5 \u03c0\u03b1\u03b9\u03c7\u03bd\u03af\u03b4\u03b9 \u03ba\u03b1\u03c1\u03c4\u03ce\u03bd",
+  "lang": "el",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#1f7a4d",
+  "icons": []
+}

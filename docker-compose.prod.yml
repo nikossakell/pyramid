@@ -1,0 +1,49 @@
+# Production overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Rule 7 (ephemeral photos) depends on this file:
+#   - every container writing temp data writes to tmpfs, never to a disk layer
+#   - swap is disabled, so a decoded image can never be paged out
+#   - the root filesystem is read-only where possible
+name: pyramid
+
+services:
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites-available:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./game/webgl_build:/usr/share/nginx/html/game:ro
+    tmpfs:
+      - /var/cache/nginx:mode=0700,size=64m,noexec,nosuid,nodev
+      - /tmp:mode=1777,size=16m,noexec,nosuid,nodev
+    memswap_limit: 0
+    mem_swappiness: 0
+
+  backend:
+    build: ./backend
+    volumes:
+      - ./data:/app/data:ro
+      - ./backend/models:/app/models:ro
+      - ./backend/rag_db:/app/rag_db:ro
+    tmpfs:
+      - /tmp:mode=1777,size=256m,noexec,nosuid,nodev
+    memswap_limit: 0
+    mem_swappiness: 0
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    environment:
+      ENVIRONMENT: production
+
+  llm:
+    tmpfs:
+      - /tmp:mode=1777,size=64m,noexec,nosuid,nodev
+    memswap_limit: 0
+    mem_swappiness: 0
+
+  postgres:
+    # Not published on the host network in production.
+    ports: []
