@@ -1,0 +1,49 @@
+nutrient_id,nutrient,limit_type,age_min_y,age_max_y,value,unit,applies_to,opinion_year,alignment,note
+selenium,Selenium,UL,7,10,130,ug/d,total intake,2023,explicit (row has a value for every column),
+selenium,Selenium,UL,11,14,180,ug/d,total intake,2023,explicit (row has a value for every column),
+selenium,Selenium,UL,15,17,230,ug/d,total intake,2023,explicit (row has a value for every column),
+vitamin_d,Vitamin D,UL,7,10,50,ug/d,total intake,2023,explicit (row has a value for every column),
+vitamin_d,Vitamin D,UL,11,14,100,ug/d,total intake,2023,explicit (row has a value for every column),
+vitamin_d,Vitamin D,UL,15,17,100,ug/d,total intake,2023,explicit (row has a value for every column),
+vitamin_a,Vitamin A (preformed),UL,7,10,1500,ug_RE/d,retinol and retinyl esters only,2024,explicit (row has a value for every column),
+vitamin_a,Vitamin A (preformed),UL,11,14,2000,ug_RE/d,retinol and retinyl esters only,2024,explicit (row has a value for every column),
+vitamin_a,Vitamin A (preformed),UL,15,17,2600,ug_RE/d,retinol and retinyl esters only,2024,explicit (row has a value for every column),
+vitamin_b6,Vitamin B6,UL,7,10,6.1,mg/d,total intake,2023,explicit (row has a value for every column),
+vitamin_b6,Vitamin B6,UL,11,14,8.6,mg/d,total intake,2023,explicit (row has a value for every column),
+vitamin_b6,Vitamin B6,UL,15,17,10.7,mg/d,total intake,2023,explicit (row has a value for every column),
+folic_acid,Folic acid (synthetic forms),UL,7,10,400,ug/d,"folic acid and added 5-MTHF only, not natural food folate",2023,explicit (row has a value for every column),
+folic_acid,Folic acid (synthetic forms),UL,11,14,600,ug/d,"folic acid and added 5-MTHF only, not natural food folate",2023,explicit (row has a value for every column),
+folic_acid,Folic acid (synthetic forms),UL,15,17,800,ug/d,"folic acid and added 5-MTHF only, not natural food folate",2023,explicit (row has a value for every column),
+iron,Iron,safe_level,7,10,20,mg/d,total intake,2024,explicit (row has a value for every column),"safe level of intake, not a UL"
+iron,Iron,safe_level,11,14,30,mg/d,total intake,2024,explicit (row has a value for every column),"safe level of intake, not a UL"
+iron,Iron,safe_level,15,17,35,mg/d,total intake,2024,explicit (row has a value for every column),"safe level of intake, not a UL"
+zinc,Zinc,UL,7,10,13,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation); 15-17 y and adults cross-checked (BfR),
+zinc,Zinc,UL,11,14,18,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation); 15-17 y and adults cross-checked (BfR),
+zinc,Zinc,UL,15,17,22,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation); 15-17 y and adults cross-checked (BfR),
+iodine,Iodine,UL,7,10,300,ug/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+iodine,Iodine,UL,11,14,450,ug/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+iodine,Iodine,UL,15,17,500,ug/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+copper,Copper,UL,7,10,3,mg/d,total intake,2003,by position (row lists 8 values = 1-3 y ... lactation),
+copper,Copper,UL,11,14,4,mg/d,total intake,2003,by position (row lists 8 values = 1-3 y ... lactation),
+copper,Copper,UL,15,17,4,mg/d,total intake,2003,by position (row lists 8 values = 1-3 y ... lactation),
+molybdenum,Molybdenum,UL,7,10,0.25,mg/d,total intake,2000,by position (row lists 8 values = 1-3 y ... lactation),
+molybdenum,Molybdenum,UL,11,14,0.4,mg/d,total intake,2000,by position (row lists 8 values = 1-3 y ... lactation),
+molybdenum,Molybdenum,UL,15,17,0.5,mg/d,total intake,2000,by position (row lists 8 values = 1-3 y ... lactation),
+boron,Boron,UL,7,10,5,mg/d,total intake,2004,by position (row lists 8 values = 1-3 y ... lactation),
+boron,Boron,UL,11,14,7,mg/d,total intake,2004,by position (row lists 8 values = 1-3 y ... lactation),
+boron,Boron,UL,15,17,9,mg/d,total intake,2004,by position (row lists 8 values = 1-3 y ... lactation),
+magnesium,Magnesium,UL,7,10,250,mg/d,"supplements, water and added magnesium only, not magnesium naturally in food",2001,by position (row lists 8 values = 1-3 y ... lactation),
+magnesium,Magnesium,UL,11,14,250,mg/d,"supplements, water and added magnesium only, not magnesium naturally in food",2001,by position (row lists 8 values = 1-3 y ... lactation),
+magnesium,Magnesium,UL,15,17,250,mg/d,"supplements, water and added magnesium only, not magnesium naturally in food",2001,by position (row lists 8 values = 1-3 y ... lactation),
+vitamin_e,Vitamin E,UL,7,10,160,mg/d,total intake,2003,by position (row lists 8 values = 1-3 y ... lactation),2024 opinion retained the existing ULs
+vitamin_e,Vitamin E,UL,11,14,220,mg/d,total intake,2003,by position (row lists 8 values = 1-3 y ... lactation),2024 opinion retained the existing ULs
+vitamin_e,Vitamin E,UL,15,17,260,mg/d,total intake,2003,by position (row lists 8 values = 1-3 y ... lactation),2024 opinion retained the existing ULs
+nicotinic_acid,Niacin: nicotinic acid,UL,7,10,4,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+nicotinic_acid,Niacin: nicotinic acid,UL,11,14,6,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+nicotinic_acid,Niacin: nicotinic acid,UL,15,17,8,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+nicotinamide,Niacin: nicotinamide,UL,7,10,350,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+nicotinamide,Niacin: nicotinamide,UL,11,14,500,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+nicotinamide,Niacin: nicotinamide,UL,15,17,700,mg/d,total intake,2002,by position (row lists 8 values = 1-3 y ... lactation),
+manganese,Manganese,safe_level,7,13,6,mg/d,total intake,2023,explicit (row has a value for every column),"safe level of intake, not a UL"
+manganese,Manganese,safe_level,14,17,7,mg/d,total intake,2023,explicit (row has a value for every column),"safe level of intake, not a UL"
+fluoride,Fluoride,safe_level,9,17,3.3,mg/d,total intake,2025,explicit (row has a value for every column),"safe level of intake, not a UL"

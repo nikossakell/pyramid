@@ -19,7 +19,6 @@ rule_engine/models.py — τα δεδομένα με τα οποία δουλε�
 Τα αναγνωριστικά θρεπτικών (nutrient_id) και οι τύποι τιμών ακολουθούν το
 data/efsa_drv.csv. Τα nutrient_id του πίνακα τροφίμων πρέπει να είναι τα ίδια.
 """
-from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -64,7 +63,11 @@ class IntakeStatus(str, Enum):
     LIKELY_ADEQUATE = "likely_adequate"       # >= PRI ή >= AI
     NO_CONCLUSION = "no_conclusion"           # < AI: δεν τεκμηριώνει ανεπάρκεια
     ABOVE_REFERENCE = "above_reference"       # > SAI (νάτριο)
-    INSUFFICIENT_DATA = "insufficient_data"   # λίγες ημέρες ή λείπει βάρος
+    INSUFFICIENT_DATA = "insufficient_data"   # λίγες ημέρες, λείπει βάρος ή τιμή στον πίνακα τροφίμων
+    # Για εύρη RI (ποσοστό ενέργειας: λίπος, υδατάνθρακες, LA, ALA)
+    BELOW_RANGE = "below_range"
+    WITHIN_RANGE = "within_range"
+    ABOVE_RANGE = "above_range"
 
 
 class MealSource(str, Enum):
@@ -106,7 +109,7 @@ class ReferenceValue:
     sex: Sex
     age_min_y: int
     age_max_y: int
-    value: float
+    value: Optional[float]               # None μόνο για ALAP (κορεσμένα, trans)
     unit: str                            # π.χ. "mg/d", "g/kg_bw/d"
     basis: ValueBasis = ValueBasis.PER_DAY
     value_max: Optional[float] = None    # άνω άκρο για εύρη (RI)
@@ -161,6 +164,9 @@ class DailyIntake:
     day: date
     totals: dict[str, float]              # nutrient_id -> ποσότητα την ημέρα
     is_complete: bool                     # αν το παιδί δήλωσε ότι κατέγραψε όλη την ημέρα
+    # θρεπτικά για τα οποία κάποιο τρόφιμο της ημέρας δεν έχει τιμή στον πίνακα σύνθεσης·
+    # για αυτά το σύνολο της ημέρας είναι άγνωστο, όχι μηδέν
+    missing_nutrients: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -180,6 +186,19 @@ class EvaluationContext:
 
 
 # ---------------------------------------------------------------- έξοδος
+
+@dataclass(frozen=True)
+class NutrientEvaluation:
+    """Έξοδος του Layer 2 για ένα θρεπτικό: συνήθης πρόσληψη έναντι τιμών αναφοράς.
+    Οι κανόνες (Layer 3) διαβάζουν αυτό και αποφασίζουν μήνυμα, κάρτες, ασφάλεια."""
+    nutrient_id: str
+    status: IntakeStatus
+    days_used: int
+    usual_intake: Optional[float] = None          # μέσος όρος πλήρων ημερών
+    unit: str = ""                                # π.χ. "mg/d" ή "E%"
+    reference_values: dict[str, float] = field(default_factory=dict)   # π.χ. {"AR": 7, "PRI": 13}
+    reason: Optional[str] = None                  # όταν status = INSUFFICIENT_DATA
+
 
 @dataclass(frozen=True)
 class RuleDecision:
