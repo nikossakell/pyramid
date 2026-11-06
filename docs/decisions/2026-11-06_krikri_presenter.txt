@@ -1,0 +1,59 @@
+ΑΠΟΦΑΣΕΙΣ ΓΙΑ ΤΟΝ KRIKRI PRESENTER (Βήμα 4.1 του πλάνου)
+Ημερομηνία: 06/11/2026
+Κώδικας: backend/ai_pipeline/presentation/prompts.py, krikri_presenter.py, backend/ai_pipeline/text/krikri_client.py
+Tests: backend/tests/unit/test_krikri_presenter.py (ψεύτικο LLM και ψεύτικος HTTP server)
+Scripts: scripts/demo_krikri.py, scripts/eval_krikri_presenter.py
+
+
+Απόφαση 1: Το Krikri ξαναγράφει το εγκεκριμένο σταθερό κείμενο· δεν παράγει σύσταση από δεδομένα.
+  Αιτιολόγηση: Το final_plan δίνει στο LLM intake, target και status και ζητά να μην αλλάξει τους
+  αριθμούς. Εδώ το prompt δεν περιέχει κανέναν αριθμό: μόνο το κείμενο που έχει εγκρίνει διαιτολόγος,
+  το θρεπτικό, τις επιτρεπόμενες τροφές και την κατεύθυνση. Ό,τι δεν μπαίνει στο prompt δεν μπορεί να
+  διαρρεύσει στην απάντηση. Το LLM αλλάζει μόνο τη διατύπωση (Κανόνες 1-2 του πλάνου).
+
+Απόφαση 2: Δίχτυ ασφαλείας σε τρία σημεία.
+  (α) Με ενεργό κίνδυνο (safety_rules) το Krikri δεν καλείται καθόλου.
+  (β) Αν το σταθερό κείμενο δεν υπάρχει ή δεν περνά τον validator, το Krikri δεν καλείται.
+  (γ) Κάθε έξοδος του Krikri περνά από τον validator του 4.2· αποτυχία, σφάλμα ή timeout → σταθερό
+      κείμενο (Κανόνας 4). Η εφαρμογή λειτουργεί πλήρως και χωρίς Krikri.
+
+Απόφαση 3: OpenAI-compatible API, μόνο με stdlib.
+  Αιτιολόγηση: Το ίδιο API προσφέρουν Ollama, llama.cpp (llama-server) και vLLM. Ο κώδικας δεν αλλάζει
+  από το laptop στον server του ΑΠΘ, και η ανοιχτή απόφαση της Δομής (Ollama ή llama.cpp) δεν
+  μπλοκάρει. Τοπικοί servers καλούνται χωρίς proxy. Μοντέλο: η επίσημη κβαντοποίηση
+  ilsp/Llama-Krikri-8B-Instruct-GGUF:Q4_K_M (5,04 GB), όπως συστήνει η κάρτα του μοντέλου.
+
+Απόφαση 4: Παράμετροι temperature 0,3 (όπως το final_plan), seed σταθερό, έως 150 tokens, 0 επαναλήψεις.
+  Αιτιολόγηση: Το σταθερό seed βοηθά την επανάληψη· η πλήρης αναπαραγωγή δεν είναι εγγυημένη σε
+  διαφορετικό υλικό. Επανάληψη μετά από απόρριψη κοστίζει χρόνο GPU· ρυθμίζεται (retries).
+
+Απόφαση 5: Η ηλικία στέλνεται ως εύρος (10-12 / 13-16), όχι ως ακριβής τιμή.
+  Αιτιολόγηση: Αρκεί για το ύφος· ελαχιστοποίηση δεδομένων.
+
+Απόφαση 6: Audit ανά μήνυμα (Κανόνας 5).
+  Hash του prompt (μαζί με παραμέτρους και μοντέλο), hash κάθε εξόδου, κωδικοί του validator ανά
+  απορριφθείσα προσπάθεια, πηγή (llm / template / none) και λόγος, το κείμενο που είδε το παιδί, εκδόσεις
+  prompt, validator και λεξικών. Χωρίς research_values.
+
+Απόφαση 7: Συστηματική αξιολόγηση πριν τη χρήση.
+  Το eval_krikri_presenter.py τρέχει όλους τους κανόνες × καταστάσεις × εύρη ηλικίας × 3 επαναλήψεις
+  (228 κλήσεις) και γράφει CSV για κρίση από διαιτολόγο. «Πέρασε τον validator» σημαίνει ασφαλές ως
+  προς τους κανόνες του 4.2, όχι κατάλληλο. Πρόταση (ΠΡΟΣΧΕΔΙΟ): αν λιγότερο από 80% περνά τον
+  validator ή ο διαιτολόγος κρίνει ακατάλληλες πάνω από 5%, το Krikri μένει εκτός και η εφαρμογή
+  δείχνει μόνο σταθερά κείμενα.
+
+
+ΠΕΡΙΟΡΙΣΜΟΙ
+- Τα tests και το demo χρησιμοποιούν ψεύτικες απαντήσεις. Η πραγματική συμπεριφορά του Krikri δεν έχει
+  μετρηθεί ακόμα.
+- Ο validator ελέγχει λέξεις, όχι νόημα (βλ. αποφάσεις 4.2).
+- Άδεια: Llama 3.1 Community License (απαιτεί αναφορά «Built with Llama» και τήρηση της Acceptable Use
+  Policy). Καταγράφεται στο THIRD_PARTY_LICENSES.md.
+
+
+ΠΗΓΕΣ
+- final_plan: Κανόνες 1-5, Βήμα 4.1
+- ilsp/Llama-Krikri-8B-Instruct: https://huggingface.co/ilsp/Llama-Krikri-8B-Instruct
+- ilsp/Llama-Krikri-8B-Instruct-GGUF: https://huggingface.co/ilsp/Llama-Krikri-8B-Instruct-GGUF
+- llama.cpp server README: https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
+- docs/decisions/2026-10-20_safety_validator.txt
