@@ -33,7 +33,10 @@ dependencies = [
   # --- Text: Krikri over llama.cpp's HTTP server ---
   "httpx>=0.27",
   # --- RAG ---
-  "chromadb>=0.5",
+  # Καρφωμένη: το rag_db χτίστηκε με 1.5.9 και το content_hash εξαρτάται από το πώς το chromadb
+  # αποθηκεύει τα διανύσματα (κανονικοποίηση με cosine). Αλλαγή έκδοσης => rebuild ή repair του rag_db.
+  # Βλ. docs/decisions/2026-10-28_rag_ingestion.txt, Απόφαση 3δ.
+  "chromadb==1.5.9",
   "sentence-transformers>=3.2",
   "pypdf>=5.1",
   # --- Observability ---

@@ -1,0 +1,159 @@
+
+[efsa_fibre_2010] status=draft σελίδες=38 κομμάτια=134 (κόπηκαν 5) μέσες λέξεις=164.2 ενότητες=1
+  φίλτρο front_matter: 1 π.χ. efsa_fibre_2010:0003 «KEY WORDS Carbohydrates, dietary fibre, sugars, added sugars, glycaemic carbohyd»
+  φίλτρο toc: 3 π.χ. efsa_fibre_2010:0013 «13 2.2.2. G lycaemic index and glycaemic load ..................................»
+  φίλτρο background: 1 π.χ. efsa_fibre_2010:0018 «TERMS OF REFERENCE AS PROVIDED BY EUROPEAN COMMISSION In accordance with Article»
+  ! σελίδες με ελάχιστο κείμενο (εικόνα; OCR δεν γίνεται): [38]
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 39-77
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['# EFSA Journal #; #(#):#', '#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for carbohydrates and dietary fibre']
+
+[efsa_protein_2012] status=draft σελίδες=32 κομμάτια=129 (κόπηκαν 15) μέσες λέξεις=153.2 ενότητες=25
+  φίλτρο front_matter: 1 π.χ. efsa_protein_2012:0004 «1 On request from the European Commission, Question No EFSA-Q-2008- 468, adopted»
+  φίλτρο toc: 5 π.χ. efsa_protein_2012:0014 «TABLE OF CONTENTS Abstract .....................................................»
+  φίλτρο background: 5 π.χ. efsa_protein_2012:0019 «BACKGROUND AS PROVIDED BY THE EUROPEAN COMMISSION The scientific advice on nutri»
+  φίλτρο numeric_table: 4 π.χ. efsa_protein_2012:0063 «Table 3: Overview of Dietary Reference Values and recommendations for protein fo»
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 33-66
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for protein', 'EFSA Journal #;#(#):# #']
+
+[efsa_vitamin_c_2013] status=draft σελίδες=33 κομμάτια=123 (κόπηκαν 7) μέσες λέξεις=159.0 ενότητες=1
+  φίλτρο toc: 4 π.χ. efsa_vitamin_c_2013:0011 «TABLE OF CONTENTS Abstract .....................................................»
+  φίλτρο background: 2 π.χ. efsa_vitamin_c_2013:0015 «64 Appendix 4. Vitam in C concentration of human milk from healthy mothers not t»
+  φίλτρο numeric_table: 1 π.χ. efsa_vitamin_c_2013:0088 «Table 2: Overview of Dietary Reference Values for vitamin C for children D-A-CH »
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 34-68
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for vitamin C', 'EFSA Journal #;#(#):# #']
+
+[efsa_folate_2014] status=draft σελίδες=37 κομμάτια=144 (κόπηκαν 10) μέσες λέξεις=152.9 ενότητες=31
+  φίλτρο front_matter: 1 π.χ. efsa_folate_2014:0004 «Correspondence: nda@efsa.europa.eu 3 Acknowledgement: The Panel wishes to thank »
+  φίλτρο toc: 3 π.χ. efsa_folate_2014:0011 «TABLE OF CONTENTS Abstract .....................................................»
+  φίλτρο background: 5 π.χ. efsa_folate_2014:0014 «BACKGROUND AS PROVIDED BY THE EUROPEAN COMMISSION The scientific advice on nutri»
+  φίλτρο numeric_table: 1 π.χ. efsa_folate_2014:0094 «Table 2: Overview of Dietary Reference Values for folate for children D-A-CH (20»
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 38-59
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for folate', 'EFSA Journal #;#(#):# #']
+
+[efsa_calcium_2015] status=draft σελίδες=41 κομμάτια=160 (κόπηκαν 9) μέσες λέξεις=163.3 ενότητες=1
+  φίλτρο front_matter: 1 π.χ. efsa_calcium_2015:0004 «Correspondence: nda@efsa.europa.eu 3 Acknowledgement: The Panel wishes to thank »
+  φίλτρο toc: 3 π.χ. efsa_calcium_2015:0011 «13 2.3.4. Storage ..............................................................»
+  φίλτρο numeric_table: 5 π.χ. efsa_calcium_2015:0035 «(2001) 699 ± 55 during study 30.8 7–8.9 Female US Caucasian 19 1 200 during stud»
+  ! σελίδες με ελάχιστο κείμενο (εικόνα; OCR δεν γίνεται): [41]
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 42-82
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for calcium', 'EFSA Journal #;#(#):# #']
+
+[efsa_vitamin_b12_2015] status=draft σελίδες=38 κομμάτια=143 (κόπηκαν 10) μέσες λέξεις=156.5 ενότητες=27
+  φίλτρο front_matter: 1 π.χ. efsa_vitamin_b12_2015:0003 «© European Food Safety Authority, 2015 KEY WORDS cobalamin, vitamin B12, Adequat»
+  φίλτρο toc: 3 π.χ. efsa_vitamin_b12_2015:0010 «TABLE OF CONTENTS Abstract .....................................................»
+  φίλτρο background: 5 π.χ. efsa_vitamin_b12_2015:0013 «BACKGROUND AS PROVIDED BY THE EUROPEAN COMMISSION The scientific advice on nutri»
+  φίλτρο numeric_table: 1 π.χ. efsa_vitamin_b12_2015:0109 «Table 2: Overview of Dietary Reference Values for cobalamin for infants and chil»
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 39-64
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for cobalamin (vitamin B#)', 'EFSA Journal #;#(#):# #']
+
+[efsa_iron_2015] status=draft σελίδες=82 κομμάτια=279 (κόπηκαν 20) μέσες λέξεις=152.1 ενότητες=51
+  φίλτρο front_matter: 1 π.χ. efsa_iron_2015:0004 «Correspondence: nda@efsa.europa.eu 3 Acknowledgement: The Panel wishes to thank »
+  φίλτρο toc: 4 π.χ. efsa_iron_2015:0017 «9 2. Definition/category .......................................................»
+  φίλτρο background: 5 π.χ. efsa_iron_2015:0021 «BACKGROUND AS PROVIDED BY THE EUROPEAN COMMISSION The scientific advice on nutri»
+  φίλτρο numeric_table: 10 π.χ. efsa_iron_2015:0129 «Table 2: Overview of Dietary Reference Values for iron for adults D-ACH (2015) N»
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 53-76,107-115
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for iron', 'EFSA Journal #;#(#):# #']
+
+[efsa_vitamin_a_2015] status=draft σελίδες=41 κομμάτια=167 (κόπηκαν 12) μέσες λέξεις=153.1 ενότητες=32
+  φίλτρο front_matter: 1 π.χ. efsa_vitamin_a_2015:0004 «2 Panel members: Carlo Agostoni, Roberto Berni Canani, Susan Fairweather -Tait, »
+  φίλτρο toc: 5 π.χ. efsa_vitamin_a_2015:0014 «TABLE OF CONTENTS Abstract .....................................................»
+  φίλτρο background: 5 π.χ. efsa_vitamin_a_2015:0019 «BACKGROUND AS PROVIDED BY THE EUROPEAN COMMISSION The scientific advice on nutri»
+  φίλτρο numeric_table: 1 π.χ. efsa_vitamin_a_2015:0132 «Table 2: Overview of Dietary Reference Values for vitamin A for infants and chil»
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 42-84
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary Reference Values for vitamin A', 'EFSA Journal #;#(#):# #']
+
+[efsa_vitamin_d_2016] status=draft σελίδες=75 κομμάτια=378 (κόπηκαν 13) μέσες λέξεις=155.6 ενότητες=42
+  φίλτρο front_matter: 2 π.χ. efsa_vitamin_d_2016:0003 «© 2016 European Food Safety Authority. EFSA Journal published by John Wiley and »
+  φίλτρο toc: 5 π.χ. efsa_vitamin_d_2016:0018 «Table of contents Abstract......................................................»
+  φίλτρο background: 5 π.χ. efsa_vitamin_d_2016:0023 «Background as provided by the European Commission The scienti fic advice on nutr»
+  φίλτρο numeric_table: 1 π.χ. efsa_vitamin_d_2016:0114 «An overview of DRVS for vitamin D for infants and children is presented in T abl»
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 76-145
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (3): ['#, #, #, Downloaded from https://efsa.onlinelibrary.wiley.com/doi/#.#/j.efsa.#.# by Cochrane Greece, Wiley Online Library on [#/#/#]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License', 'Dietary reference values for vitamin D', 'www.efsa.europa.eu/efsajournal # EFSA Journal #;#(#):#']
+
+[efsa_sodium_2019] status=draft σελίδες=50 κομμάτια=223 (κόπηκαν 13) μέσες λέξεις=154.5 ενότητες=38
+  φίλτρο front_matter: 1 π.χ. efsa_sodium_2019:0004 «Keywords: Sodium, Dietary Reference Value Requestor: European Commission Questio»
+  φίλτρο toc: 5 π.χ. efsa_sodium_2019:0017 «Table of Contents Abstract......................................................»
+  φίλτρο background: 5 π.χ. efsa_sodium_2019:0022 «Background as provided by the European Commission The scienti fic advice on nutr»
+  φίλτρο numeric_table: 2 π.χ. efsa_sodium_2019:0127 «The Committee noted that target sodium chloride intakes do not represent ideal o»
+  εξαιρέθηκαν αυτόματα (βιβλιογραφία/παραρτήματα): σελίδες 51-191
+  αφαιρέθηκαν ως κεφαλίδα/υποσέλιδο (2): ['Dietary Reference Values for sodium', 'www.efsa.europa.eu/efsajournal # EFSA Journal #;#(#):#']
+
+--- δείγματα efsa_fibre_2010 ---
+efsa_fibre_2010:0050 | σελ. 17-17 | ενότητα: -
+  The recommendations for glycaemic carbohydrates for adults (19 to 70 years) were calculated to be 272 to 282 g per day, corresponding to about 40 E%. For children and adolescents, recommendations are 45 to 50 E%. No upper limit for digestible carbohydrates is given. No quantitative recommendation was made for (added) sugars. The Netherlands guidelines for healthy eating did not specify recommended…
+
+efsa_fibre_2010:0094 | σελ. 27-27 | ενότητα: -
+  The impact of fluoride prophylaxis and other lifestyle variables seems to override variations in cariogenic carbohydrate intake in these studies. High intake of sugars has been associated with an increased risk of caries when oral hygiene is simultaneously poor and at a low level of fluoride prophylaxis (Danish Nutrition Council, 2003; Burt and Pai, 2001; Kleemoja-Kujala and Räsänen, 1982). Howeve…
+
+
+--- δείγματα efsa_protein_2012 ---
+efsa_protein_2012:0055 | σελ. 14-14 | ενότητα: 3.3. Dietary intake
+  proteins is usually higher than 1 (but truncated to 1). For plant proteins the PD-CAAS value is close to 1 for soy protein, somewhat lower for other legumes and around 0.5-0.65 for cereal protein. Table 2: Example of values for Protein Digestibility-Corrected Amino Acid Score (PD-CAAS) values of different foods for adults (adapted from (AFSSA, 2007; Michaelsen et al., 2009; WHO/FAO/UNU, 2007)) PD-…
+
+efsa_protein_2012:0100 | σελ. 23-23 | ενότητα: 5.1.2.1. Older adults
+  The Panel notes that by considering only the primary studies based on 32 data points the requirement would be 101.5 mg/kg body weight per day, but that the statistical power is greatly reduced and that this valu e is not significantly different to the value of 105 mg N/kg body weight per day. The Panel considers that the value of 0.66 g/kg body weight per day can be accepted as the AR and the valu…
+
+
+--- δείγματα efsa_vitamin_c_2013 ---
+efsa_vitamin_c_2013:0048 | σελ. 14-14 | ενότητα: -
+  In smokers, higher metabolic losses are observed as a result of increased oxidative stress (IOM, 2000). Kallner et al. (1981) compared data from 17 hea lthy men (aged 21-69 years) who had been chronic smokers for many years and smoked more than 20 ci garettes per day to data previously collected in non-smoking men (Kallner et al., 1979). Smokers followed the same protocol as the non-smokers, inclu…
+
+efsa_vitamin_c_2013:0090 | σελ. 24-24 | ενότητα: -
+  WHO/FAO (2004) added throughout pr egnancy an intake of 10 mg/day to the RNI for non-pregnant women (hence an RNI of 55 mg/day) to meet the needs of the growing fetus in the last trimester, as 8 mg/day is sufficient to prevent signs of scurvy in infants aged four to seven months (Irwin and Hutchins, 1976). During lactation, a vitamin C secr etion via milk of 20 mg/day and an absorption efficiency …
+
+
+--- δείγματα efsa_folate_2014 ---
+efsa_folate_2014:0058 | σελ. 16-16 | ενότητα: 2.3.6.3. Breast milk
+  However, it is unknown whether endogenous folate in the faeces is in an active form or in the form of breakdown products. Breast milk 2.3.6.3. During lactation, folate is secreted via breast milk, where it is bound to folate-binding proteins. The presence of folate-binding proteins in mammary gland tissue facilitates folate uptake from the circulation, since milk folate concentration is typically …
+
+efsa_folate_2014:0107 | σελ. 28-28 | ενότητα: 5.1.1.1. Evidence from studies not considering the MTHFR genotype
+  Underestimation of the folate intake via the assigned diet also occurred in the small depletion – repletion metabolic study of Sauberlich et al. (1987 ). They found that a diet providing 200 μg/day of food folate for three weeks stabilised plasma folate concentrations just above the deficiency cut-off of 6.8 nmol/L in two women who were kept on a low-folate diet (10 μg/day) for 28 days followed by…
+
+
+--- δείγματα efsa_calcium_2015 ---
+efsa_calcium_2015:0061 | σελ. 17-17 | ενότητα: -
+  therefore, the Panel considers that the mean value cannot be taken as representative for healthy children aged 2–3 years. Endogenous urinary excretion was measured using a stable isotope technique in five children aged 3 – 14 years, and individual data (age) were 2.8 (female, 19 kg, 3 years), 1.7 (male, 39 kg, 5 years), 2.0 (male, 57 kg, 12 years), 1.1 (male, 62 kg, 14 years) and 2.1 (male, 91 kg,…
+
+efsa_calcium_2015:0115 | σελ. 28-28 | ενότητα: -
+  A high er absorption (+2 SD above that of adults) was taken into consideration; thus, the AR was set at 1 040 mg /day and the recommended intake was set at 1 300 mg/day for both sexes during the peak growth phase. The Nordic Countries (Nordic Council of Ministers, 2004) recommended a calcium intake of 600 mg/day for children aged 1 –5 years, which was assumed to ensure a calcium retention of about…
+
+
+--- δείγματα efsa_vitamin_b12_2015 ---
+efsa_vitamin_b12_2015:0057 | σελ. 17-17 | ενότητα: 2.4.2. Serum cobalamin concentration
+  Lower serum cobalamin concentrations have been observed in vegetarians or vegans than non-vegetarian individuals ( Millet et al., 1989 ; Miller et al., 1991 ; KrajcovicovaKudlackova et al., 2000 ). In intervention studies, cobalamin supplementation significantly increased serum cobalamin concentration in subjects with relatively low serum cobalamin at baseline (Blacher et al., 2007; Duggan et al.,…
+
+efsa_vitamin_b12_2015:0104 | σελ. 26-26 | ενότητα: 4.2. Infants and children
+  An overview of DRVs for cobalamin for adults is presented in Table 1. Table 1: Overview of Dietary Reference Values for cobalamin for adults D-A-CH (2015) NCM (2014) WHO/FAO (2004) NL (2003) Afssa (2001) IOM (1998) SCF (1993) DH (1991) Age (years) ≥ 19 ≥ 18 ≥ 19 ≥ 19 ≥ 20 ≥ 19 ≥ 19 ≥ 19 PRI (μg/day) 3.0 2.0 2.4 2.8 2.4 2.4 1.4 1.5 NCM, Nordic Council of Ministers; NL, Health Council of the Netherl…
+
+
+--- δείγματα efsa_iron_2015 ---
+efsa_iron_2015:0104 | σελ. 25-25 | ενότητα: 3.2. Dietary intake
+  (1988) on breast milk consumption during one eating occasion at different ages, i.e. the amount of breast milk consumed on one eating occasion was set to 135 g/eating occasion for infants aged 6 –7 months and to 100 g/eating occasion for infants aged 8 –12 months. The Panel notes the limitations in the methods used for assessing breast milk consumption in infants and related uncertainties in the i…
+
+efsa_iron_2015:0199 | σελ. 44-44 | ενότητα: 5.1.2. Algorithms and models used to estimate iron absorption
+  FAO/WHO/UNU, 2004 ; EFSA NDA Panel, 2009 ), the Panel estimates that the amount of iron secreted in breast milk during the first six months of lactation is 0.24 mg/day. Together with basal iron losses of about 1 mg/day (Hunt et al., 2009) in a non-menstruating woman of normal body weight, the total requirement for absorbed iron during the lactation period amounts to about 1.2–1.3 mg /day. As breas…
+
+
+--- δείγματα efsa_vitamin_a_2015 ---
+efsa_vitamin_a_2015:0067 | σελ. 17-17 | ενότητα: 2.3.5. Metabolism
+  CYP26A1, CYP26B1 and CYP26C1 appear to be primarily responsible for the degradation of retinoic acid (Pennimpede et al., 2010 ; Ross and Zolfaghari, 2011 ; Kedishvili, 2013). With the exception of liver , where CYP26A1 is the predominant form , and lung, where CYP26A1 is slightly more abundant, all other human adult tissues contain higher levels of CYP26B1 transcript (Xi and Yang, 2008 ; Topletz e…
+
+efsa_vitamin_a_2015:0122 | σελ. 28-29 | ενότητα: 4.1. Adults
+  The Estimated Average Requirement (EAR) was calculated by multiplying the percent age of body vitamin A stores lost per day when ingesting a vitamin A-free diet (0.5 %), the minimum acceptable liv er retinol concentration (20 μg/g), the liver weight:body weight ratio (1:33), the reference weight for a specific age group and sex (61 and 76 kg for women and men, respectively), the ratio of total bod…
+
+
+--- δείγματα efsa_vitamin_d_2016 ---
+efsa_vitamin_d_2016:0140 | σελ. 30-30 | ενότητα: 5.1.2.1.1. Bone mineral density/bone mineral content (BMD/BMC)
+  exercise + fortified milk; exercise; or control (no milk, no exercise). Mean baseline serum 25(OH)D concentrations averaged 86.3 /C6 36 nmol/L across the groups, in which no, one and 17 participants had serum 25(OH)D concentrations below 12.5 nmol/L, of 12.5 –25 nmol/L and of 25 –50 nmol/L, respectively. Serum 25(OH)D concentrations increased by an average of 21 nmol/L in the forti fied milk compa…
+
+efsa_vitamin_d_2016:0266 | σελ. 52-52 | ενότητα: 5.1.2.2.3. Calcium absorption
+  There was no effect of vitamin D 3 supplementation on change in fractional calcium absorption. The Panel notes that, in this study, 25(OH)D concentration at baseline (mean: 70 nmol/L) or after 12 weeks of vitamin D supplementations compared with placebo was not related to changes in fractional calcium absorption. Conclusions on calcium absorption in children The Panel notes that few data are avail…
+
+
+--- δείγματα efsa_sodium_2019 ---
+efsa_sodium_2019:0086 | σελ. 19-19 | ενότητα: 2.6.1.2. Casual spot urine collections and timed spot collections
+  hence, these methods are subject to greater within-person variability in sodium excretion than 24-h urine collections (Ji et al., 2012; Wang et al., 2013). Predictive equations have been developed to estimate 24-h urinary sodium excretion from spot urine samples (Kawasaki et al., 1993; T anaka et al., 2002; Brown et al., 2013). Their validity has been assessed in a number of studies (Kawasaki et a…
+
+efsa_sodium_2019:0162 | σελ. 34-34 | ενότητα: Observational studies
+  In both groups, SBP and DBP increased between baseline and the end of intervention. The adjusted difference between the two groups in the blood pressure change from baseline (intervention vs control) was /C00.8 ( /C03.0, 1.5) mm Hg for SBP (p = 0.51) and /C01.2 ( /C03.7, 1.2) mm Hg for DBP (p = 0.33). This study was judged to be at moderate RoB (tier 2), in particular due to a potential RoB in rel…
+
