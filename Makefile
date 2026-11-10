@@ -1,5 +1,5 @@
 .PHONY: help dev up down logs test test-unit test-integration test-e2e lint format \
-        migrate migration seed models rag frontend build-frontend check-ephemeral deploy clean
+        migrate migration seed models rag frontend build-frontend check-ephemeral deploy clean demo
 
 COMPOSE      := docker compose
 COMPOSE_PROD := docker compose -f docker-compose.yml -f docker-compose.prod.yml
@@ -68,6 +68,9 @@ deploy:  ## Build and start the production stack
 	$(COMPOSE_PROD) up -d
 	$(COMPOSE_PROD) exec backend alembic upgrade head
 	$(MAKE) check-ephemeral
+
+demo:  ## Local backend demo with Swagger UI (SQLite, DEMO_MODE, random secrets): http://localhost:8000/docs
+	scripts/demo_backend.sh
 
 clean:  ## Remove caches and build artefacts
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +

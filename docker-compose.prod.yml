@@ -28,13 +28,22 @@ services:
     build: ./backend
     volumes:
       - ./data:/app/data:ro
+      # Ο κώδικας είναι στο /app, άρα το ai_pipeline/presentation/lexicon.py (DATA_DIR = parents[3]/data) και το
+      # app/config.py (DATA_DIR) διαβάζουν από το /data.
+      - ./data:/data:ro
       - ./backend/models:/app/models:ro
       - ./backend/rag_db:/app/rag_db:ro
     tmpfs:
       - /tmp:mode=1777,size=256m,noexec,nosuid,nodev
     memswap_limit: 0
     mem_swappiness: 0
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    # Το backend ΔΕΝ κάνει publish θύρα (ούτε εδώ ούτε στο docker-compose.yml): το βλέπει μόνο ο Nginx.
+    # Ένας worker: το όριο αποτυχιών login είναι in-memory (app/services/auth_service.py).
+    # --proxy-headers: η IP του παιδιού από το X-Forwarded-For, ΜΟΝΟ όταν το αίτημα έρχεται από το
+    #   FORWARDED_ALLOW_IPS (προεπιλογή: το subnet του δικτύου του compose, παρακάτω). Ο Nginx ΑΝΤΙΚΑΘΙΣΤΑ το
+    #   header με το $remote_addr, άρα ένα X-Forwarded-For που στέλνει ο client δεν φτάνει ποτέ ως IP.
+    # --no-access-log: το access log του uvicorn γράφει το query string (π.χ. /foods/search?q=) — R6.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=${FORWARDED_ALLOW_IPS:-172.28.0.0/24} --no-access-log
     environment:
       ENVIRONMENT: production
 
@@ -47,3 +56,11 @@ services:
   postgres:
     # Not published on the host network in production.
     ports: []
+
+networks:
+  default:
+    ipam:
+      config:
+        # Σταθερό subnet, ώστε το FORWARDED_ALLOW_IPS (.env) να είναι γνωστό εκ των προτέρων. Αν συγκρούεται με
+        # δίκτυο του ΑΠΘ, αλλάζει ΚΑΙ εδώ ΚΑΙ στο FORWARDED_ALLOW_IPS.
+        - subnet: 172.28.0.0/24

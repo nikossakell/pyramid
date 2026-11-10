@@ -22,6 +22,9 @@ services:
     volumes:
       - ./backend:/app
       - ./data:/app/data:ro
+      # Ο κώδικας είναι στο /app, άρα το ai_pipeline/presentation/lexicon.py (DATA_DIR = parents[3]/data) και το
+      # app/config.py (DATA_DIR) διαβάζουν από το /data.
+      - ./data:/data:ro
       - ./backend/models:/app/models:ro
       - ./backend/rag_db:/app/rag_db
     # OliveGemma + the NSFW detector run on the GPU.
@@ -32,7 +35,8 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # --no-access-log: το access log του uvicorn γράφει το query string (R6)· τα αιτήματα τα καταγράφει η εφαρμογή.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --no-access-log
     restart: unless-stopped
 
   llm:

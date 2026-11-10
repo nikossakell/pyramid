@@ -5,23 +5,29 @@ description = "PYRAMID backend: API, deterministic rule engine and local AI pipe
 requires-python = ">=3.11"
 license = { file = "../LICENSE" }
 
+# Πάγωμα για τις 12 εβδομάδες της μελέτης: ακριβείς εκδόσεις (==) για ό,τι είναι εγκατεστημένο στο venv
+# (09/11/2026, Python 3.14). Τα υπόλοιπα (>=) δεν είναι ακόμα εγκατεστημένα και καρφώνονται όταν εγκατασταθούν.
+# ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: ίδια Python 3.12 σε venv και Docker (το Dockerfile χτίζει ακόμα με 3.11).
 dependencies = [
   # --- API ---
-  "fastapi>=0.115",
-  "uvicorn[standard]>=0.32",
-  "pydantic>=2.9",
-  "pydantic-settings>=2.6",
-  "python-multipart>=0.0.12",
+  "fastapi==0.162.2",
+  "uvicorn[standard]==0.54.0",
+  "pydantic==2.14.3",
+  "pydantic-settings==2.16.2",
+  "tzdata==2026.6",               # APP_TIMEZONE χωρίς να εξαρτάται από τη βάση ζωνών του λειτουργικού
+  # ΣΚΟΠΙΜΑ χωρίς python-multipart: χωρίς αυτό το FastAPI αρνείται να φορτώσει endpoint με UploadFile/Form,
+  # άρα καμία φωτογραφία δεν μπορεί να γραφτεί σε προσωρινό αρχείο (R4, Κανόνας 7).
   # --- Persistence ---
-  "sqlalchemy>=2.0",
-  "alembic>=1.14",
-  "psycopg[binary]>=3.2",
+  "sqlalchemy==2.1.8",
+  "alembic==1.20.1",
+  "psycopg[binary]==3.3.8",
   # --- Security ---
-  "argon2-cffi>=23.1",
-  "pyjwt>=2.9",
-  "cryptography>=43.0",
+  # Χωρίς argon2-cffi: τα κλειδιά πρόσβασης είναι τυχαία 60 bit, αρκεί HMAC-SHA256 με pepper.
+  # Χωρίς cryptography: καμία κρυπτογράφηση πεδίων (κανένα docs/*.md δεν την υπόσχεται).
+  "pyjwt==2.15.1",
   # --- Reference data and maths ---
   "pandas>=2.2",
+  # numpy ΟΧΙ ==: η εγκατεστημένη 2.5.4 θέλει Python >= 3.12, ενώ το Dockerfile χτίζει με 3.11.
   "numpy>=1.26",
   # --- Scheduling (replaces Celery; no Redis in the stack) ---
   "apscheduler>=3.10",
@@ -29,9 +35,9 @@ dependencies = [
   "torch>=2.5",
   "transformers>=4.46",
   "accelerate>=1.1",
-  "pillow>=11.0",
+  "pillow==13.0.0",
   # --- Text: Krikri over llama.cpp's HTTP server ---
-  "httpx>=0.27",
+  "httpx==0.28.1",
   # --- RAG ---
   # Καρφωμένη: το rag_db χτίστηκε με 1.5.9 και το content_hash εξαρτάται από το πώς το chromadb
   # αποθηκεύει τα διανύσματα (κανονικοποίηση με cosine). Αλλαγή έκδοσης => rebuild ή repair του rag_db.
@@ -45,10 +51,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8.3",
+  "pytest==9.1.1",
   "pytest-asyncio>=0.24",
   "pytest-cov>=6.0",
-  "httpx>=0.27",
+  "httpx==0.28.1",
   "ruff>=0.7",
   "mypy>=1.13",
   "types-pyyaml",
