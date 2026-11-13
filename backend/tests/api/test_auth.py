@@ -10,7 +10,7 @@ from app.core.clock import local_today, utcnow
 from app.core.security import create_access_token
 from app.db.models import AuditLog, Participant
 
-from .conftest import add_participant, build_app, login
+from .conftest import add_participant, build_app, login, make_settings
 
 LOGIN = "/api/v1/auth/login"
 
@@ -71,6 +71,9 @@ def test_failure_limit_per_ip(app):
             assert attacker.post(LOGIN, json={"access_key": "AAAA-BBBB-CCCC"}).status_code == 401
         blocked = attacker.post(LOGIN, json={"access_key": key})          # ακόμα και με σωστό κλειδί
         assert blocked.status_code == 429 and blocked.json() == {"detail": "too_many_attempts"}
+        wait = int(blocked.headers["Retry-After"])                        # δευτερόλεπτα μέχρι να ανοίξει το παράθυρο
+        assert 15 * 60 - 30 <= wait <= 15 * 60
+        assert "Retry-After" not in other.post(LOGIN, json={"access_key": "AAAA-BBBB-CCCC"}).headers   # 401: χωρίς
         assert other.post(LOGIN, json={"access_key": key}).status_code == 200   # άλλη IP: κανονικά
     limiter, later = app.state.login_limiter, utcnow() + timedelta(minutes=15)
     assert not limiter.blocked("10.0.0.1", later)                        # μετά το παράθυρο ξεκλειδώνει
@@ -174,3 +177,85 @@ def test_key_and_token_never_in_audit_or_log(app, client, db, caplog):
         assert secret not in log_dump
     events = [a.event for a in db.query(AuditLog).order_by(AuditLog.id)]
     assert events == ["login_succeeded", "login_failed"]
+
+
+# ---------- Retry-After (μονάδα) ----------
+
+def test_retry_after_counts_down_to_the_oldest_failure_that_fills_the_window():
+    from app.services.auth_service import LoginLimiter
+    limiter, t0 = LoginLimiter(3, timedelta(minutes=15)), utcnow()
+    assert limiter.retry_after("ip", t0) is None
+    limiter.fail("ip", t0)
+    limiter.fail("ip", t0 + timedelta(minutes=5))
+    assert limiter.retry_after("ip", t0 + timedelta(minutes=6)) is None          # 2 < 3: όχι κλειδωμένη
+    limiter.fail("ip", t0 + timedelta(minutes=10))
+    assert limiter.retry_after("ip", t0 + timedelta(minutes=10)) == 5 * 60        # η πρώτη αποτυχία λήγει στο t0+15'
+    assert limiter.retry_after("ip", t0 + timedelta(minutes=14, seconds=59, milliseconds=500)) == 1   # ποτέ 0
+    assert limiter.retry_after("ip", t0 + timedelta(minutes=15)) is None          # ελευθερώθηκε μία θέση
+    assert limiter.retry_after("other", t0) is None and "other" not in limiter._failures
+
+
+# ---------- τέλος μελέτης (S19): STUDY_DURATION_DAYS από την εγγραφή, POST_STUDY_ACCESS ----------
+
+STUDY_ENDED = {"study_ended": True}
+
+
+def test_study_defaults_are_drafts():
+    s = make_settings()
+    assert s.STUDY_DURATION_DAYS == 84 and s.POST_STUDY_ACCESS is False           # ΠΡΟΣΧΕΔΙΟ / ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ
+
+
+def test_last_study_day_has_access_and_the_next_day_does_not(app, db):
+    days = app.state.settings.STUDY_DURATION_DAYS
+    _, last_key = add_participant(app, enrollment_date=_today() - timedelta(days=days - 1))   # σήμερα = τελευταία ημέρα
+    ended, ended_key = add_participant(app, enrollment_date=_today() - timedelta(days=days))   # σήμερα = η επόμενη
+    token, _ = create_access_token(ended.id, 0, app.state.settings.JWT_SECRET.get_secret_value(), 720, utcnow())
+    with TestClient(app) as client:
+        headers = login(client, last_key)
+        assert client.get("/api/v1/me", headers=headers).status_code == 200
+        r = client.post(LOGIN, json={"access_key": ended_key})
+        assert r.status_code == 403 and r.json() == STUDY_ENDED
+        stale = {"Authorization": f"Bearer {token}"}                             # token από πριν το τέλος
+        for method, url in (("get", "/api/v1/me"), ("get", "/api/v1/meals"), ("get", "/api/v1/feedback/today"),
+                            ("get", "/api/v1/cards"), ("get", "/api/v1/foods/search"), ("get", "/api/v1/days"),
+                            ("post", "/api/v1/meals/text"), ("post", "/api/v1/ask")):
+            r = getattr(client, method)(url, headers=stale)
+            assert r.status_code == 403 and r.json() == STUDY_ENDED, url
+        assert client.get("/api/v1/health").status_code == 200
+    assert db.query(AuditLog).filter_by(event="login_denied_study_ended").one().participant_id == ended.id
+
+
+def test_study_end_does_not_count_as_login_failure(app):
+    _, key = add_participant(app, enrollment_date=_today() - timedelta(days=200))
+    with TestClient(app) as client:
+        for _ in range(35):                                                      # > LOGIN_MAX_FAILURES
+            assert client.post(LOGIN, json={"access_key": key}).status_code == 403   # ποτέ 429
+
+
+def test_post_study_access_keeps_the_app_open():
+    app = build_app(POST_STUDY_ACCESS=True)
+    _, key = add_participant(app, enrollment_date=_today() - timedelta(days=200))
+    with TestClient(app) as client:
+        assert client.get("/api/v1/me", headers=login(client, key)).status_code == 200
+
+
+def test_study_duration_is_a_setting():
+    app = build_app(STUDY_DURATION_DAYS=7)
+    _, in_key = add_participant(app, enrollment_date=_today() - timedelta(days=6))
+    _, out_key = add_participant(app, enrollment_date=_today() - timedelta(days=7))
+    with TestClient(app) as client:
+        assert client.post(LOGIN, json={"access_key": in_key}).status_code == 200
+        assert client.post(LOGIN, json={"access_key": out_key}).json() == STUDY_ENDED
+
+
+def test_control_arm_keeps_its_own_rule_after_the_study_period():
+    """Η ομάδα ελέγχου δεν παίρνει ποτέ study_ended: πριν το CONTROL_ACCESS_FROM 403 not_yet_available, μετά πρόσβαση."""
+    closed = build_app(CONTROL_ACCESS_FROM=None)
+    _, key = add_participant(closed, arm="control", enrollment_date=_today() - timedelta(days=200))
+    with TestClient(closed) as client:
+        r = client.post(LOGIN, json={"access_key": key})
+        assert r.status_code == 403 and r.json() == {"detail": "not_yet_available"}
+    opened = build_app(CONTROL_ACCESS_FROM=_today())
+    _, key = add_participant(opened, arm="control", enrollment_date=_today() - timedelta(days=200))
+    with TestClient(opened) as client:
+        assert client.get("/api/v1/me", headers=login(client, key)).status_code == 200

@@ -27,9 +27,10 @@ from app.config import Settings  # noqa: E402
 from app.core import audit  # noqa: E402
 from app.core.clock import local_today, utcnow  # noqa: E402
 from app.core.security import generate_access_key, key_hmac, normalize_access_key  # noqa: E402
-from app.db.models import Alert, DayStatus, Meal, MealItem, Participant  # noqa: E402
+from app.db.models import DayStatus, Meal, MealItem, Participant  # noqa: E402
 from app.db.session import make_engine, make_sessionmaker  # noqa: E402
-from app.services.card_service import run_card_drops  # noqa: E402
+from app.services import alert_service  # noqa: E402
+from app.services.card_service import run_card_job  # noqa: E402
 from app.services.food_catalog import load_catalog  # noqa: E402
 
 DEMO_DAY = [("breakfast", [("milk", "medium"), ("wholegrain_bread", "small")]),
@@ -61,7 +62,8 @@ def main(argv: Optional[list[str]] = None, settings: Optional[Settings] = None) 
         print("seed_demo: μόνο με DEMO_MODE=true και εκτός production", file=sys.stderr)
         return 2
     catalog = load_catalog(settings.data_path(settings.FOODS_CSV), settings.data_path(settings.FOOD_ALIASES_CSV),
-                           settings.DATA_DIR / "efsa_drv.csv", settings.DATA_DIR / "food_groups.csv")
+                           settings.DATA_DIR / "efsa_drv.csv", settings.DATA_DIR / "food_groups.csv",
+                           settings.data_path(settings.DISPLAY_FOOD_GROUPS_CSV))
     engine = make_engine(settings.DATABASE_URL.get_secret_value())
     if "participants" not in inspect(engine).get_table_names():
         print("seed_demo: δεν υπάρχουν πίνακες — τρέξτε πρώτα `alembic upgrade head`", file=sys.stderr)
@@ -88,7 +90,8 @@ def main(argv: Optional[list[str]] = None, settings: Optional[Settings] = None) 
                     meal.items = [MealItem(position=n, food_id=f, portion=por, grams=catalog.grams(f, por),
                                            ai_suggested=False) for n, (f, por) in enumerate(items)]
                     db.add(meal)
-                db.add(DayStatus(participant_id=p_.id, day=day, completed=True, completed_at=utcnow()))
+                db.add(DayStatus(participant_id=p_.id, day=day, completed=True, completed_at=utcnow(),
+                                 completed_by="child"))
 
         a = participant("Α (παρέμβαση, με ιστορικό)", "F", 12, "intervention", 7)
         history(a)
@@ -96,10 +99,10 @@ def main(argv: Optional[list[str]] = None, settings: Optional[Settings] = None) 
         participant("Γ (ομάδα ελέγχου)", "F", 11, "control", 7)
         d = participant("Δ (παρέμβαση, ανοιχτό safety alert)", "M", 13, "intervention", 7)
         history(d)
-        db.add(Alert(participant_id=d.id, kind="safety", category="demo_safety", note="DEMO"))
+        alert_service.create_alert(db, d.id, "safety", "demo_safety", note="DEMO")
         db.commit()
         for k in range(HISTORY_DAYS, 0, -1):                          # η νυχτερινή εργασία για τις 3 ημέρες
-            run_card_drops(db, catalog, today - timedelta(days=k))
+            run_card_job(db, catalog, today - timedelta(days=k), settings)
     engine.dispose()
 
     print("\nDEMO συμμετέχοντες (τα κλειδιά εμφανίζονται μόνο τώρα):")

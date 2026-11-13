@@ -2,7 +2,8 @@
 app/dependencies.py — κοινές εξαρτήσεις των endpoints: ρυθμίσεις, session, ρολόι, τρέχων συμμετέχων.
 
 Ο τρέχων συμμετέχων ελέγχεται σε ΚΑΘΕ αίτημα: έγκυρο token, ενεργός, ίδιο token_version (ανάκληση
-συγκατάθεσης -> 401), και πρόσβαση ομάδας ελέγχου (-> 403). Το pseudonym_id μπαίνει στο request.state για το log.
+συγκατάθεσης -> 401), πρόσβαση ομάδας ελέγχου (-> 403 not_yet_available) και τέλος μελέτης για την ομάδα παρέμβασης
+(-> 403 {"study_ended": true}). Το pseudonym_id μπαίνει στο request.state για το log.
 """
 from collections.abc import Iterator
 from datetime import datetime
@@ -15,7 +16,8 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.core.security import InvalidToken, decode_access_token
 from app.db.models import Participant
-from app.services.auth_service import may_use_app
+from app.core.exceptions import StudyEnded
+from app.services.auth_service import may_use_app, study_ended
 from app.services.food_catalog import FoodCatalog
 
 _bearer = HTTPBearer(auto_error=False, scheme_name="ChildJWT",
@@ -60,6 +62,8 @@ def get_current_participant(request: Request, db: DbDep, settings: SettingsDep, 
     request.state.pseudonym_id = str(participant.id)
     if not may_use_app(participant, settings, now):
         raise HTTPException(403, "not_yet_available")
+    if study_ended(participant, settings, now):
+        raise StudyEnded()
     return participant
 
 

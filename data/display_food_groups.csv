@@ -1,0 +1,12 @@
+code,label_el,shown,sort,status
+vegetables,Λαχανικά,true,1,ΠΡΟΣΧΕΔΙΟ
+fruit,Φρούτα,true,2,ΠΡΟΣΧΕΔΙΟ
+legumes,Όσπρια,true,3,ΠΡΟΣΧΕΔΙΟ
+whole_grains,Δημητριακά ολικής άλεσης,true,4,ΠΡΟΣΧΕΔΙΟ
+dairy,Γαλακτοκομικά,true,5,ΠΡΟΣΧΕΔΙΟ
+fish,Ψάρι,true,6,ΠΡΟΣΧΕΔΙΟ
+nuts,Ξηροί καρποί,true,7,ΠΡΟΣΧΕΔΙΟ
+meat,Κρέας,true,8,ΠΡΟΣΧΕΔΙΟ
+eggs,Αυγά,true,9,ΠΡΟΣΧΕΔΙΟ
+processed_meat,Αλλαντικά,false,10,ΠΡΟΣΧΕΔΙΟ
+salty_snacks,Αλμυρά σνακ,false,11,ΠΡΟΣΧΕΔΙΟ

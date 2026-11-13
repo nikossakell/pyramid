@@ -34,7 +34,13 @@ def test_valid_photo_gives_suggestions_and_stores_nothing(client, child, db):
     assert body["needs_confirmation"] is True
     assert [(s["food_id"], s["confidence_word"]) for s in body["suggestions"]] == [
         ("lentils", "σίγουρο"), ("wholegrain_bread", "ίσως"), (None, "ίσως")]
-    assert body["suggestions"][2]["name_el"] == "χωριάτικη σαλάτα" and body["suggestions"][0]["label_en"] == "lentil soup"
+    assert all(set(s) == {"food_id", "name_el", "confidence_word", "alternatives", "portion", "components"}
+               for s in body["suggestions"])
+    assert all(s["portion"] is None and s["components"] is None for s in body["suggestions"])   # πεδία για το μέλλον
+    assert body["suggestions"][2]["name_el"] == "χωριάτικη σαλάτα"
+    assert [[a["food_id"] for a in s["alternatives"]] for s in body["suggestions"]] == [
+        ["bean_soup", "chickpeas"], ["oats"], ["tomato", "feta"]]              # M06 «Μήπως είναι…», S08β «διάλεξε»
+    assert body["suggestions"][0]["alternatives"][0] == {"food_id": "bean_soup", "name_el": "Φασολάδα"}   # χωρίς σκορ
     assert_no_numbers(body)                                                      # R1: ούτε confidence
     assert db.query(Meal).count() == 0 and db.query(MealItem).count() == 0       # R3
     a = db.query(AuditLog).filter_by(event="photo_processed").one()
@@ -183,6 +189,11 @@ def test_text_suggestions(client, child, db, text, expected):
     body = r.json()
     assert [(s["food_id"], s["confidence_word"]) for s in body["suggestions"]] == expected
     assert body["needs_confirmation"] is True
+    for s in body["suggestions"]:
+        assert len(s["alternatives"]) <= 3 and s["food_id"] not in [a["food_id"] for a in s["alternatives"]]
+        assert s["portion"] is None and s["components"] is None
+        if s["confidence_word"] == "σίγουρο":
+            assert s["alternatives"] == []
     assert_no_numbers(body)
     assert db.query(Meal).count() == 0                                        # R3
     audit_row = db.query(AuditLog).filter_by(event="text_processed").one()
@@ -197,3 +208,46 @@ def test_text_validation(client, child, body):
 
 def test_text_requires_token(client):
     assert client.post(TEXT, json={"text": "φακές"}).status_code == 401
+
+
+def test_text_alternatives_for_unknown_and_fuzzy(client, child):
+    _, _, headers = child
+    by_name = lambda text: {s["name_el"]: s for s in client.post(TEXT, json={"text": text}, headers=headers).json()["suggestions"]}
+    unknown = by_name("σπανακόπιτα, πίτσα")
+    assert unknown["σπανακόπιτα"]["food_id"] is None                            # S08β: «Δεν το βρήκα, διάλεξε από αυτά»
+    assert unknown["σπανακόπιτα"]["alternatives"] == [{"food_id": "spinach", "name_el": "Σπανάκι"}]
+    assert unknown["πίτσα"] == {"food_id": None, "name_el": "πίτσα", "confidence_word": "ίσως", "alternatives": [],
+                                "portion": None, "components": None}
+    assert_no_numbers(unknown)
+
+
+def test_recognizer_alternatives_are_resolved_deduplicated_and_capped(app, client, child):
+    from app.services.photo_pipeline import RecognizedFood
+
+    class Rec:
+        version = "test"
+
+        def recognize(self, jpeg_bytes):
+            return [RecognizedFood("x", "φακές", 0.9, ("φακές", "φακόσουπα", "άγνωστο πιάτο", "ρεβίθια", "φασολάδα",
+                                                       "μήλο", "μπανάνα"))]
+
+    _, _, headers = child
+    app.state.photo_pipeline = PhotoPipeline(DemoNsfwFilter(), DemoBrightnessFilter(), Rec(), 1_048_576, 448)
+    s = post_photo(client, headers, jpeg()).json()["suggestions"][0]
+    assert s["food_id"] == "lentils"
+    assert [a["food_id"] for a in s["alternatives"]] == ["chickpeas", "bean_soup", "apple"]   # όχι το ίδιο, όχι άγνωστα, έως 3
+
+
+def test_recognizer_with_malformed_alternatives_is_rejected(app, client, child):
+    from app.services.photo_pipeline import RecognizedFood
+
+    class Rec:
+        version = "test"
+
+        def recognize(self, jpeg_bytes):
+            return [RecognizedFood("x", "φακές", 0.9, [("lentils", 0.9)])]       # σκορ μέσα στα alternatives: όχι
+
+    _, _, headers = child
+    app.state.photo_pipeline = PhotoPipeline(DemoNsfwFilter(), DemoBrightnessFilter(), Rec(), 1_048_576, 448)
+    r = post_photo(client, headers, jpeg())
+    assert r.status_code == 422 and r.json() == {"rejected": True}              # fail-closed (R4)

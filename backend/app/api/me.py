@@ -1,8 +1,8 @@
 """
-GET/PATCH /me — ΜΟΝΟ {arm, avatar_id, photo_available}. Καμία άλλη πληροφορία για το παιδί.
+GET/PATCH /me — ΜΟΝΟ {arm, avatar_id, photo_available, photo_status}. Καμία άλλη πληροφορία για το παιδί.
 
-photo_available: υπάρχει ρυθμισμένη διαδρομή φωτογραφίας (σήμερα μόνο η demo, με DEMO_MODE) και ο κωδικός δεν είναι
-σε αναστολή φωτογραφίας.
+photo_status: "unavailable" αν δεν υπάρχει ρυθμισμένη διαδρομή φωτογραφίας (σήμερα μόνο η demo, με DEMO_MODE)·
+αλλιώς "suspended" αν ο κωδικός είναι σε αναστολή φωτογραφίας· αλλιώς "available". photo_available = "available".
 """
 from datetime import datetime
 
@@ -12,17 +12,18 @@ from app.core import audit
 from app.db.models import Participant
 from app.dependencies import CurrentParticipant, DbDep, NowDep, SettingsDep
 from app.schemas.me import MeResponse, MeUpdate
-from app.services.suggestion_service import photo_available
+from app.services.suggestion_service import photo_status
 
 router = APIRouter(tags=["me"])
 
 
 def _me(participant: Participant, request: Request, now: datetime) -> MeResponse:
-    return MeResponse(arm=participant.arm, avatar_id=participant.avatar_id,
-                      photo_available=photo_available(participant, request.app.state.photo_pipeline, now))
+    status = photo_status(participant, request.app.state.photo_pipeline, now)
+    return MeResponse(arm=participant.arm, avatar_id=participant.avatar_id, photo_available=status == "available",
+                      photo_status=status)
 
 
-@router.get("/me", response_model=MeResponse, summary="Το προφίλ μου (ομάδα, avatar, φωτογραφία διαθέσιμη;)")
+@router.get("/me", response_model=MeResponse, summary="Το προφίλ μου (ομάδα, avatar, κατάσταση φωτογραφίας)")
 def get_me(request: Request, participant: CurrentParticipant, now: NowDep):
     return _me(participant, request, now)
 

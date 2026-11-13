@@ -1,4 +1,4 @@
-"""/health και /me: το /me δίνει ΜΟΝΟ {arm, avatar_id, photo_available} (R1, R2)."""
+"""/health και /me: το /me δίνει ΜΟΝΟ {arm, avatar_id, photo_available, photo_status} (R1, R2)."""
 from datetime import timedelta
 
 import pytest
@@ -14,22 +14,38 @@ def test_health_without_token(client):
     assert r.status_code == 200 and r.json() == {"status": "ok"}
 
 
-def test_me_has_exactly_three_fields(client, child):
+def test_me_has_exactly_four_fields(client, child):
     _, _, headers = child
     body = client.get(ME, headers=headers).json()
-    assert body == {"arm": "intervention", "avatar_id": None, "photo_available": False}   # DEMO_MODE=false
+    assert body == {"arm": "intervention", "avatar_id": None, "photo_available": False,
+                    "photo_status": "unavailable"}                                        # DEMO_MODE=false: χωρίς μοντέλα
 
 
 @pytest.mark.parametrize("settings_overrides", [{"DEMO_MODE": True}])
 def test_photo_available_in_demo_unless_suspended(client, child, db):
     p, _, headers = child
-    assert client.get(ME, headers=headers).json()["photo_available"] is True
+    status = lambda: (lambda b: (b["photo_available"], b["photo_status"]))(client.get(ME, headers=headers).json())
+    assert status() == (True, "available")
     db.get(Participant, p.id).photo_suspended_until = utcnow() + timedelta(hours=1)
     db.commit()
-    assert client.get(ME, headers=headers).json()["photo_available"] is False
+    assert status() == (False, "suspended")
+    body = client.get(ME, headers=headers).json()
+    assert set(body) == {"arm", "avatar_id", "photo_available", "photo_status"}   # καμία ημερομηνία λήξης προς το παιδί
+    assert "until" not in str(body) and "202" not in str(body)
     db.get(Participant, p.id).photo_suspended_until = utcnow() - timedelta(minutes=1)
     db.commit()
-    assert client.get(ME, headers=headers).json()["photo_available"] is True
+    assert status() == (True, "available")
+
+
+def test_unavailable_wins_over_suspended_without_models(client, child, db):
+    """Χωρίς ρυθμισμένα μοντέλα (DEMO_MODE=false) η κατάσταση είναι unavailable ακόμα κι αν υπάρχει αναστολή: ίδια
+    σειρά ελέγχου με το /meals/photo (503 πριν από 403)."""
+    p, _, headers = child
+    db.get(Participant, p.id).photo_suspended_until = utcnow() + timedelta(hours=1)
+    db.commit()
+    body = client.get(ME, headers=headers).json()
+    assert (body["photo_available"], body["photo_status"]) == (False, "unavailable")
+    assert client.patch(ME, json={"avatar_id": "avatar_03"}, headers=headers).json()["photo_status"] == "unavailable"
 
 
 def test_patch_avatar(client, child, db):

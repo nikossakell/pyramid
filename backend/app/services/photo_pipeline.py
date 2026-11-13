@@ -47,6 +47,8 @@ class RecognizedFood:
     label_en: str
     name_el: Optional[str]          # ελληνικό όνομα για τον food resolver (None αν δεν υπάρχει)
     confidence: float               # 0..1· ΠΟΤΕ στο παιδί (μόνο «σίγουρο» / «ίσως»)
+    # Τα επόμενα υποψήφια του μοντέλου για το ΙΔΙΟ τρόφιμο (ελληνικά ονόματα, από το πιο πιθανό), χωρίς σκορ.
+    alternatives: tuple[str, ...] = ()
 
 
 @runtime_checkable
@@ -78,12 +80,14 @@ class DemoBrightnessFilter:
 
 
 class DemoRecognizer:
-    """DEMO: σταθερή πρόταση, ανεξάρτητα από την εικόνα. Η τρίτη δεν υπάρχει στον πίνακα (food_id: null)."""
-    version = "demo-0"
+    """DEMO: σταθερή πρόταση, ανεξάρτητα από την εικόνα, με εναλλακτικά («Μήπως είναι…»). Η τρίτη δεν υπάρχει στον
+    πίνακα (food_id: null): το παιδί διαλέγει από τα alternatives ή ψάχνει."""
+    version = "demo-1"
 
     def recognize(self, jpeg: bytes) -> list[RecognizedFood]:
-        return [RecognizedFood("lentil soup", "φακές", 0.92), RecognizedFood("bread", "ψωμί", 0.61),
-                RecognizedFood("greek salad", "χωριάτικη σαλάτα", 0.55)]
+        return [RecognizedFood("lentil soup", "φακές", 0.92, ("φασολάδα", "ρεβίθια")),
+                RecognizedFood("bread", "ψωμί", 0.61, ("βρώμη",)),
+                RecognizedFood("greek salad", "χωριάτικη σαλάτα", 0.55, ("ντομάτα", "φέτα"))]
 
 
 # ------------------------------------------------------------------ pipeline
@@ -146,7 +150,8 @@ class PhotoPipeline:
             found = list(self.recognizer.recognize(jpeg))
         except Exception:
             raise PhotoRejected("recognizer_error") from None
-        if not all(isinstance(r, RecognizedFood) for r in found):
+        if not all(isinstance(r, RecognizedFood) and isinstance(r.alternatives, tuple)
+                   and all(isinstance(a, str) for a in r.alternatives) for r in found):
             raise PhotoRejected("recognizer_error")
         return found
 

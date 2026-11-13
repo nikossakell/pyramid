@@ -3,6 +3,10 @@ app/services/suggestion_service.py — προτάσεις τροφίμων απ�
 
 R3 (Κανόνας 3): οι προτάσεις ΔΕΝ αποθηκεύονται ποτέ. Το παιδί τις διορθώνει και στέλνει τη λίστα στο /meals/confirm.
 Στο παιδί: food_id (ή null αν δεν βρέθηκε στον πίνακα), ελληνικό όνομα, και «σίγουρο» / «ίσως» — ποτέ αριθμός (R1).
+alternatives (0..MAX_ALTERNATIVES, χωρίς σκορ): για το «Μήπως είναι…» και το «Δεν το βρήκα, διάλεξε από αυτά».
+  - φωτογραφία: τα επόμενα υποψήφια του recognizer (όσα υπάρχουν στον πίνακα)·
+  - food_id null (φωτογραφία ή κείμενο): επιπλέον τα καλύτερα του food_resolver.candidates()·
+  - κείμενο με «ίσως» (fuzzy): τα υπόλοιπα του food_resolver.candidates().
 
 Κείμενο: interface TextExtractor (μελλοντικά Krikri, Βήμα 3.2). Η σημερινή υλοποίηση είναι ντετερμινιστική: χωρίζει
 σε «και» και κόμμα· κάθε τμήμα δοκιμάζεται ολόκληρο στον food resolver (ώστε το «μακαρόνια με κιμά» να βρεθεί ως
@@ -32,6 +36,7 @@ from app.services.photo_pipeline import PhotoPipeline, RecognizedFood
 SURE, MAYBE = "σίγουρο", "ίσως"
 MAX_TEXT_CHARS = 300
 MAX_UNRESOLVED_NAME_CHARS = 60
+MAX_ALTERNATIVES = 3           # ΠΡΟΣΧΕΔΙΟ: όσα χωρούν στο M06 / S08β
 
 
 @dataclass(frozen=True)
@@ -39,7 +44,24 @@ class Suggestion:
     food_id: Optional[str]
     name_el: str
     confidence_word: str
-    label_en: Optional[str] = None
+    alternatives: tuple[tuple[str, str], ...] = ()      # (food_id, name_el), ποτέ το ίδιο το τρόφιμο, ποτέ σκορ
+
+
+def _alternatives(catalog: FoodCatalog, own_id: Optional[str], names: tuple[str, ...] = (),
+                  candidates_for: Optional[str] = None) -> tuple[tuple[str, str], ...]:
+    """names: ονόματα από τον recognizer (μπαίνουν μόνο όσα αντιστοιχίζονται)· candidates_for: κείμενο για τον resolver."""
+    ids: list[str] = []
+    for name in names:
+        r = catalog.resolver.resolve(name)
+        if r is not None:
+            ids.append(r.food_id)
+    if candidates_for:
+        ids += catalog.resolver.candidates(candidates_for, MAX_ALTERNATIVES + 1)
+    out: list[tuple[str, str]] = []
+    for fid in ids:
+        if fid != own_id and fid in catalog.foods and all(fid != o[0] for o in out):
+            out.append((fid, catalog.foods[fid].name_el))
+    return tuple(out[:MAX_ALTERNATIVES])
 
 
 # ------------------------------------------------------------------ κείμενο
@@ -87,10 +109,13 @@ def suggestions_from_text(catalog: FoodCatalog, extractor: TextExtractor, text: 
     for phrase in extractor.extract(text[:MAX_TEXT_CHARS]):
         r = catalog.resolver.resolve(phrase)
         if r is None:
-            out.append(Suggestion(None, phrase[:MAX_UNRESOLVED_NAME_CHARS], MAYBE))
+            out.append(Suggestion(None, phrase[:MAX_UNRESOLVED_NAME_CHARS], MAYBE,
+                                  _alternatives(catalog, None, candidates_for=phrase)))
         elif r.food_id not in seen:
             seen.add(r.food_id)
-            out.append(Suggestion(r.food_id, catalog.foods[r.food_id].name_el, SURE if r.method != "fuzzy" else MAYBE))
+            fuzzy = r.method == "fuzzy"
+            out.append(Suggestion(r.food_id, catalog.foods[r.food_id].name_el, MAYBE if fuzzy else SURE,
+                                  _alternatives(catalog, r.food_id, candidates_for=phrase) if fuzzy else ()))
     return out[:MAX_ITEMS_PER_MEAL]
 
 
@@ -102,10 +127,12 @@ def suggestions_from_photo(catalog: FoodCatalog, found: list[RecognizedFood], co
         r = catalog.resolver.resolve(f.name_el) if f.name_el else None
         word = SURE if f.confidence >= confident_min and r is not None and r.method != "fuzzy" else MAYBE
         if r is None:
-            out.append(Suggestion(None, (f.name_el or f.label_en)[:MAX_UNRESOLVED_NAME_CHARS], MAYBE, f.label_en))
+            out.append(Suggestion(None, (f.name_el or f.label_en)[:MAX_UNRESOLVED_NAME_CHARS], MAYBE,
+                                  _alternatives(catalog, None, f.alternatives, candidates_for=f.name_el)))
         elif r.food_id not in seen:
             seen.add(r.food_id)
-            out.append(Suggestion(r.food_id, catalog.foods[r.food_id].name_el, word, f.label_en))
+            out.append(Suggestion(r.food_id, catalog.foods[r.food_id].name_el, word,
+                                  _alternatives(catalog, r.food_id, f.alternatives)))
     return out[:MAX_ITEMS_PER_MEAL]
 
 
@@ -114,8 +141,15 @@ def photo_suspended(participant: Participant, now: datetime) -> bool:
     return until is not None and now < until
 
 
+def photo_status(participant: Participant, pipeline: PhotoPipeline, now: datetime) -> str:
+    """available | suspended | unavailable, με την ίδια σειρά ελέγχου του /meals/photo (503 πριν από 403)."""
+    if not pipeline.available:
+        return "unavailable"
+    return "suspended" if photo_suspended(participant, now) else "available"
+
+
 def photo_available(participant: Participant, pipeline: PhotoPipeline, now: datetime) -> bool:
-    return pipeline.available and not photo_suspended(participant, now)
+    return photo_status(participant, pipeline, now) == "available"
 
 
 def record_rejection(db: Session, participant: Participant, reason: str, settings: Settings, now: datetime) -> None:

@@ -11,6 +11,9 @@ ai_pipeline/food_resolver.py — Βήμα 3.3: ελληνικό όνομα τρ�
 και (food_id, alias), ώστε να δουλεύει ίδια με τον demo πίνακα τροφίμων και με τον πραγματικό.
 
 search() δίνει υποψήφια food_id για αυτόματη συμπλήρωση: ίδιο όνομα, αρχή λέξης, υποσυμβολοσειρά, fuzzy.
+candidates() δίνει έως k «κοντινά» food_id για να διαλέξει το παιδί («Μήπως είναι…», «Δεν το βρήκα, διάλεξε»),
+και όταν η resolve() επιστρέφει None (ισοπαλία ή χαμηλό σκορ). Πιο χαλαρό κατώφλι, ποτέ αυτόματη επιλογή, ποτέ σκορ
+στην έξοδο. Η resolve() δεν αλλάζει.
 """
 import re
 from dataclasses import dataclass
@@ -21,6 +24,9 @@ from ai_pipeline.presentation.lexicon import normalize
 
 FUZZY_MIN_RATIO = 0.85     # ΠΡΟΣΧΕΔΙΟ: όπως το final_plan
 MAX_SEARCH_LIMIT = 50
+CANDIDATE_MIN_RATIO = 0.75  # ΠΡΟΣΧΕΔΙΟ: ελάχιστη ομοιότητα για να ΠΡΟΤΑΘΕΙ (όχι να επιλεγεί) ένα τρόφιμο
+CANDIDATE_MIN_PREFIX = 4    # ΠΡΟΣΧΕΔΙΟ: ή κοινή αρχή λέξης τόσων γραμμάτων (σύνθετες λέξεις, υποκοριστικά)
+MAX_CANDIDATES = 10
 _NON_WORD = re.compile(r"[\W_]+")
 
 
@@ -114,3 +120,40 @@ class FoodResolver:
                 continue
             rank[e.food_id] = min(r, rank.get(e.food_id, r))
         return sorted(rank, key=lambda fid: (rank[fid], self._order[fid]))[:limit]
+
+    def candidates(self, text: str, k: int = 3) -> list[str]:
+        """Έως k food_id που μοιάζουν με το text, για να διαλέξει το παιδί. Πρώτα όσα δίνει η search() (ίδιο κείμενο,
+        αρχή λέξης, υποσυμβολοσειρά, fuzzy ≥ FUZZY_MIN_RATIO)· μετά όσα μοιράζονται αρχή λέξης ≥ CANDIDATE_MIN_PREFIX
+        γραμμάτων («ντοματοσαλάτα» ~ «ντομάτα») ή έχουν ομοιότητα ≥ CANDIDATE_MIN_RATIO (ολόκληρο κείμενο ή λέξη προς
+        λέξη), από το πιο όμοιο. Ντετερμινιστικό· δεν επιστρέφει σκορ."""
+        q = key(text)
+        k = max(0, min(k, MAX_CANDIDATES))
+        if not q or not k:
+            return []
+        out = self.search(q, k)
+        if len(out) >= k:
+            return out[:k]
+        q_words = [w for w in q.split() if len(w) >= CANDIDATE_MIN_PREFIX]
+        best: dict[str, tuple[int, float]] = {}                  # food_id -> (κοινή αρχή λέξης, ομοιότητα)
+        for e in self._entries:
+            if e.food_id in out:
+                continue
+            words = e.text.split()
+            prefix = max((_common_prefix(a, b) for a in q_words for b in words), default=0)
+            ratio = max(SequenceMatcher(None, a, b).ratio() for a in {q, *q_words} for b in {e.text, *words})
+            if prefix < CANDIDATE_MIN_PREFIX and ratio < CANDIDATE_MIN_RATIO:
+                continue
+            score = (prefix if prefix >= CANDIDATE_MIN_PREFIX else 0, ratio)
+            if score > best.get(e.food_id, (-1, 0.0)):
+                best[e.food_id] = score
+        out += sorted(best, key=lambda fid: (-best[fid][0], -best[fid][1], self._order[fid]))
+        return out[:k]
+
+
+def _common_prefix(a: str, b: str) -> int:
+    n = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        n += 1
+    return n

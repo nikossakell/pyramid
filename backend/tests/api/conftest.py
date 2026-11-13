@@ -17,6 +17,7 @@ from app.main import create_app
 SECRETS = {"JWT_SECRET": "j" * 40, "ACCESS_KEY_PEPPER": "p" * 40, "ADMIN_TOKEN": "a" * 40}
 DATA = Path(__file__).resolve().parents[3] / "data"
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$")   # π.χ. created_at
 
 
 def _nutrient_names_with_digits() -> list[str]:
@@ -31,13 +32,13 @@ NAMES_WITH_DIGITS = _nutrient_names_with_digits()
 
 def assert_no_numbers(obj: Any, path: str = "$") -> None:
     """R1: σε απάντηση προς το παιδί κανένας αριθμός (int/float) και κανένα ψηφίο σε κείμενο, εκτός από
-    αναγνωριστικά (UUID), ημερομηνίες ISO και ονόματα θρεπτικών του λεξικού (μόνο «βιταμίνη B12»)."""
+    αναγνωριστικά (UUID), ημερομηνίες/χρονοσφραγίδες ISO και ονόματα θρεπτικών του λεξικού (μόνο «βιταμίνη B12»)."""
     if isinstance(obj, bool) or obj is None:
         return
     if isinstance(obj, (int, float)):
         raise AssertionError(f"number at {path}: {obj!r}")
     if isinstance(obj, str):
-        if _ISO_DATE.match(obj):
+        if _ISO_DATE.match(obj) or _ISO_DATETIME.match(obj):
             return
         try:
             uuid.UUID(obj)

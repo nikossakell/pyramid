@@ -5,6 +5,8 @@ app/api/docs.py — Swagger UI (/docs) και OpenAPI (/openapi.json), για δ
 περνούν από τον Nginx (που σερβίρει το PWA στο /): το demo τρέχει το backend απευθείας (scripts/demo_backend.sh).
 Τα αρχεία του Swagger UI φορτώνονται από το CDN του FastAPI (cdn.jsdelivr.net): το demo θέλει σύνδεση στο internet.
 """
+import uuid
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
@@ -21,16 +23,20 @@ API του **PYRAMID** (διπλωματική ΑΠΘ): καταγραφή γε�
    το **X-Admin-Token** και δοκιμαστικές φωτογραφίες (`meal.jpg`, `dark.jpg`, `too_big.jpg`).
 2. `POST /api/v1/auth/login` με το κλειδί ενός παιδιού → αντιγράψτε το `access_token`.
 3. **Authorize** → `ChildJWT`: επικολλήστε το token (μένει αποθηκευμένο στη σελίδα).
-4. Δοκιμάστε: `/me` → `/foods/search?q=φακ` → `/meals/photo` (επιλέξτε `meal.jpg`) ή `/meals/text` →
-   `/meals/confirm` → `/days/{day}/complete` → `/feedback/today` → `/cards`.
-5. Ερευνητής: **Authorize** → `AdminToken` με το X-Admin-Token → `/admin/alerts`, `/admin/photo-suspensions`.
+4. Δοκιμάστε: `/me` → `/food-groups` → `/foods/search?q=φακ` (ή `?group=legumes`) → `/meals/photo` (επιλέξτε
+   `meal.jpg`: προτάσεις με `alternatives`) ή `/meals/text` → `/meals/confirm` (δεύτερο Execute με το ίδιο σώμα:
+   `200`, `created: false`) → `/days/{day}/complete` → `/feedback/today` → `/cards`.
+5. Ερευνητής: **Authorize** → `AdminToken` με το X-Admin-Token → `/admin/alerts` (και `?status=new`),
+   `/admin/alerts/{id}` (χρονολόγιο), `/admin/participants`, `/admin/system-status`, `/admin/photo-suspensions`.
 
 ### Κανόνες που φαίνονται στο demo
 - **R1:** καμία αριθμητική τιμή θρεπτικού, γραμμαρίων ή ποσοστού σε απάντηση προς το παιδί.
 - **R3:** οι προτάσεις φωτογραφίας/κειμένου δεν αποθηκεύονται· μόνο το `/meals/confirm`.
 - **R4:** φωτογραφία ως raw `image/jpeg` (όχι multipart), μόνο στη RAM· κάθε απόρριψη: ίδιο `422 {"rejected": true}`.
   Το `dark.jpg` απορρίπτεται από το demo φίλτρο· μετά από 5 απορρίψεις η φωτογραφία αναστέλλεται (403).
-- Ομάδα ελέγχου: `403 not_yet_available` μέχρι το `CONTROL_ACCESS_FROM`.
+- Ομάδα ελέγχου: `403 not_yet_available` μέχρι το `CONTROL_ACCESS_FROM`. Ομάδα παρέμβασης μετά το τέλος της μελέτης
+  (`STUDY_DURATION_DAYS` από την εγγραφή): `403 {"study_ended": true}` στο login και σε κάθε αίτημα.
+- Login: μετά από πολλές αποτυχίες `429` με header `Retry-After` (δευτερόλεπτα).
 
 ⚠️ Με `DEMO_MODE=true` τα φίλτρα και η αναγνώριση είναι **demo** (όχι μοντέλα) και οι τιμές τροφίμων **ενδεικτικές**.
 """
@@ -38,10 +44,11 @@ API του **PYRAMID** (διπλωματική ΑΠΘ): καταγραφή γε�
 TAGS = [
     {"name": "health", "description": "Χωρίς token."},
     {"name": "auth", "description": "Κλειδί πρόσβασης → JWT. Δεν υπάρχει εγγραφή μέσω API (scripts/create_participant.py)."},
-    {"name": "me", "description": "Μόνο ομάδα, avatar και αν η φωτογραφία είναι διαθέσιμη."},
-    {"name": "foods", "description": "Αναζήτηση στον πίνακα τροφίμων (χωρίς θρεπτικά)."},
-    {"name": "meals", "description": "Προτάσεις από φωτογραφία/κείμενο (δεν αποθηκεύονται) και επιβεβαιωμένα γεύματα."},
-    {"name": "days", "description": "Δήλωση πλήρους ημέρας (μετρά στη συνήθη πρόσληψη)."},
+    {"name": "me", "description": "Μόνο ομάδα, avatar και κατάσταση φωτογραφίας (available | suspended | unavailable)."},
+    {"name": "foods", "description": "Αναζήτηση στον πίνακα τροφίμων και ομάδες εμφάνισης (χωρίς θρεπτικά)."},
+    {"name": "meals", "description": "Προτάσεις από φωτογραφία/κείμενο (δεν αποθηκεύονται) και επιβεβαιωμένα γεύματα "
+                                      "(idempotent με client_meal_id)."},
+    {"name": "days", "description": "Πλήρεις ημέρες (μετρούν στη συνήθη πρόσληψη): δήλωση του παιδιού και λίστα ανά ημέρα."},
     {"name": "feedback", "description": "Rule engine + KrikriPresenter + ασφάλεια. Μόνο κείμενα, χωρίς αριθμούς."},
     {"name": "cards", "description": "Κάρτες της νυχτερινής εργασίας (python -m app.jobs.daily_card_drops)."},
     {"name": "ask", "description": "Ερωτήσεις στη βάση γνώσης (5.2): δεν υπάρχει ακόμα (501)."},
@@ -61,7 +68,8 @@ CONFIRM_PATH = "/api/v1/meals/confirm"
 
 
 def install_openapi(app: FastAPI, settings: Settings) -> None:
-    """OpenAPI με περιγραφή demo· τα παραδείγματα του /meals/confirm παίρνουν τη σημερινή ημερομηνία."""
+    """OpenAPI με περιγραφή demo· τα παραδείγματα του /meals/confirm παίρνουν τη σημερινή ημερομηνία και νέο
+    client_meal_id, ώστε να εκτελούνται όπως είναι."""
     def openapi() -> dict:
         if app.openapi_schema is None:
             app.openapi_schema = get_openapi(title=app.title, version=app.version, description=app.description,
@@ -71,5 +79,6 @@ def install_openapi(app: FastAPI, settings: Settings) -> None:
                     .get("content", {}).get("application/json", {}).get("examples", {}))
         for ex in examples.values():
             ex["value"]["eaten_on"] = today
+            ex["value"]["client_meal_id"] = str(uuid.uuid4())      # νέο γεύμα σε κάθε φόρτωση της σελίδας
         return app.openapi_schema
     app.openapi = openapi

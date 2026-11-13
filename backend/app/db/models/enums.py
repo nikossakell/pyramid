@@ -35,6 +35,11 @@ class Portion(str, Enum):
     LARGE = "large"
 
 
+class CompletedBy(str, Enum):
+    CHILD = "child"                # δήλωση του παιδιού (POST /days/{day}/complete)· υπερισχύει
+    AUTO = "auto"                  # νυχτερινή εργασία, μόνο με COMPLETE_DAY_MODE=auto
+
+
 class CardTier(str, Enum):
     COMMON = "common"
     RARE = "rare"
@@ -50,6 +55,18 @@ class AlertStatus(str, Enum):
     NEW = "new"
     IN_PROGRESS = "in_progress"
     CLOSED = "closed"
+
+
+class AlertEventType(str, Enum):
+    CREATED = "created"
+    STATUS_CHANGED = "status_changed"
+    NOTE_UPDATED = "note_updated"      # άλλαξε η σημείωση του ερευνητή· το κείμενό της ΔΕΝ γράφεται στο event
+
+
+class JobStatus(str, Enum):
+    RUNNING = "running"
+    OK = "ok"
+    FAILED = "failed"
 
 
 def check_in(column: str, enum: type[Enum]) -> str:

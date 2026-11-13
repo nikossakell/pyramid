@@ -16,7 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.clock import utcnow
 
 from ..base import Base
-from .enums import MealSlot, MealSource, Portion, check_in
+from .enums import CompletedBy, MealSlot, MealSource, Portion, check_in
 
 
 class Meal(Base):
@@ -27,6 +27,9 @@ class Meal(Base):
     eaten_on: Mapped[date] = mapped_column(Date)
     meal_slot: Mapped[str] = mapped_column(String(16))
     source: Mapped[str] = mapped_column(String(8))
+    # Κλειδί idempotency από τον client (ουρά offline του PWA): ίδιο κλειδί = το ίδιο γεύμα, ποτέ δεύτερο. NULL μόνο
+    # σε γεύματα που δεν ήρθαν από το API (seed, γραμμές πριν τη μετάβαση 002).
+    client_meal_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))   # soft delete (ALLOW_MEAL_DELETE)
 
@@ -37,6 +40,7 @@ class Meal(Base):
         CheckConstraint(check_in("meal_slot", MealSlot), name="meal_slot"),
         CheckConstraint(check_in("source", MealSource), name="source"),
         Index("ix_meals_participant_day", "participant_id", "eaten_on"),
+        UniqueConstraint("participant_id", "client_meal_id"),
     )
 
 
@@ -60,7 +64,8 @@ class MealItem(Base):
 
 
 class DayStatus(Base):
-    """ΠΡΟΣΧΕΔΙΟ (ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: πλήρης ημέρα): την «πλήρη ημέρα» τη δηλώνει το παιδί."""
+    """ΠΡΟΣΧΕΔΙΟ (ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: πλήρης ημέρα): την «πλήρη ημέρα» τη δηλώνει το παιδί (completed_by=child) ή, με
+    COMPLETE_DAY_MODE=auto, τη σημειώνει η νυχτερινή εργασία (completed_by=auto). NULL όσο δεν είναι πλήρης."""
     __tablename__ = "day_status"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -68,5 +73,9 @@ class DayStatus(Base):
     day: Mapped[date] = mapped_column(Date)
     completed: Mapped[bool] = mapped_column(default=False)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    completed_by: Mapped[Optional[str]] = mapped_column(String(8))
 
-    __table_args__ = (UniqueConstraint("participant_id", "day"),)
+    __table_args__ = (
+        UniqueConstraint("participant_id", "day"),
+        CheckConstraint(check_in("completed_by", CompletedBy), name="completed_by"),
+    )

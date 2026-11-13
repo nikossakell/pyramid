@@ -91,6 +91,48 @@
     παραδείγματα του `/meals/confirm` με τη σημερινή ημερομηνία. Demo με μία εντολή: `scripts/demo_backend.sh`
     (`make demo`), δεδομένα από το `scripts/seed_demo.py` (μόνο με DEMO_MODE).
 
+## Τροποποιήσεις: κενά backend ↔ mockups (12/11/2026)
+
+Αιτιολόγηση: `docs/decisions/2026-11-12_backend_gaps.txt`.
+
+23. **DEMO_MODE:** προεπιλογή `false` (όπως το `.env.example`)· το demo το ορίζει ρητά.
+24. **Idempotency στο `/meals/confirm` (μετάβαση 002).** Νέο υποχρεωτικό `client_meal_id` (UUID), unique ανά
+    συμμετέχοντα. Νέο γεύμα → 201· ίδιο κλειδί και ίδιο σώμα → 200 με το υπάρχον (`created: false`)· ίδιο κλειδί με
+    άλλο σώμα, ή για διαγραμμένο γεύμα → 409 `client_meal_id_conflict`. Ο έλεγχος του κλειδιού προηγείται του ελέγχου
+    ημερομηνίας. Audit `meal_confirm_repeated`.
+25. **Απαντήσεις γευμάτων.** `/meals/confirm` → `{meal_id, eaten_on, meal_slot, food_groups, created}`.
+    `GET /meals` → `{meal_id, eaten_on, meal_slot, source, created_at, items:[{food_id, name_el, portion, food_group,
+    ai_suggested}]}` (το `id` έγινε `meal_id`). Χωρίς γραμμάρια.
+26. **Προτάσεις (`/meals/photo`, `/meals/text`).** `{food_id|null, name_el, confidence_word, alternatives:[{food_id,
+    name_el}] (0–3), portion: null, components: null}`· το `label_en` αφαιρέθηκε. `RecognizedFood.alternatives`
+    (ονόματα, χωρίς σκορ) και `food_resolver.candidates(name, k=3)` (`CANDIDATE_MIN_RATIO=0.75`,
+    `CANDIDATE_MIN_PREFIX=4`, ΠΡΟΣΧΕΔΙΟ)· η `resolve` δεν αλλάζει. `portion` και `components` μόνο στο schema.
+27. **Ομάδες εμφάνισης.** `data/display_food_groups.csv` (ΠΡΟΣΧΕΔΙΟ: `code, label_el, shown, sort, status`),
+    ρύθμιση `DISPLAY_FOOD_GROUPS_CSV`, sha256 στα `data_versions`. `GET /food-groups` → και οι 11 κύριες ομάδες στη
+    σειρά εμφάνισης, `{code, label_el, shown}` (η `sort` δεν βγαίνει). `food_groups_today` και `food_groups` του
+    confirm: μόνο `shown=true`, στη σειρά εμφάνισης. `GET /foods/search?group=<κωδικός>`: χωρίς `q` τα τρόφιμα της
+    ομάδας (αλφαβητικά, έως 50)· άγνωστος κωδικός → 422 `unknown_group`.
+28. **`/me`.** Νέο `photo_status: "available" | "suspended" | "unavailable"` (το `photo_available` μένει). Χωρίς
+    ημερομηνία λήξης αναστολής προς το παιδί.
+29. **Login 429:** header `Retry-After` (δευτερόλεπτα μέχρι να ελευθερωθεί το παράθυρο).
+30. **Τέλος μελέτης (S19).** `STUDY_DURATION_DAYS=84` (ΠΡΟΣΧΕΔΙΟ) από το `enrollment_date`, `POST_STUDY_ACCESS=false`
+    (ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ). Ομάδα παρέμβασης μετά την τελευταία ημέρα: 403 `{"study_ended": true}` στο login και σε κάθε
+    αίτημα με token. Η ομάδα ελέγχου μένει με το `CONTROL_ACCESS_FROM`. Η νυχτερινή εργασία αγνοεί όσους είχαν
+    τελειώσει πριν από την ημέρα-στόχο.
+31. **Πλήρης ημέρα (μετάβαση 003).** `COMPLETE_DAY_MODE = declared | auto` (προεπιλογή `declared`, ΠΡΟΣΧΕΔΙΟ),
+    `AUTO_COMPLETE_MIN_MEALS=2` (ΠΡΟΣΧΕΔΙΟ), `day_status.completed_by = child | auto`. Σε `auto` η νυχτερινή εργασία
+    σημειώνει την ημέρα πριν μοιράσει κάρτες· η δήλωση του παιδιού υπερισχύει. `GET /days?from=&to=` →
+    `[{day, completed}]` (έως 31 ημέρες).
+32. **Χρονολόγιο alert (μετάβαση 004).** Πίνακας `alert_events {id, alert_id, event, from_status, to_status, at}`,
+    append-only με τους τρεις μηχανισμούς του audit· `event = created | status_changed | note_updated`, χωρίς το
+    κείμενο της σημείωσης. `GET /admin/alerts/{id}` → alert + `events`. Δημιουργία και αλλαγές μόνο μέσω του
+    `app/services/alert_service.py` (και το `scripts/create_alert.py`).
+33. **Κονσόλα.** `GET /admin/alerts?status=` (υπήρχε)· `GET /admin/participants` → `[{participant_id, arm, active,
+    enrolled_on, study_ended, photo_suspended_until}]`· `GET /admin/system-status` → `versions` (sha256 των CSV και
+    του `rag_sources.csv`, `PROMPT_VERSION`, `foods_is_demo`, μοντέλα) και `services` (`db`, `llm`, `photo_pipeline`,
+    `last_card_job`). Πίνακας `job_runs {id, job, day, started_at, finished_at, status, count}` που γράφει η
+    νυχτερινή εργασία. Όλα με `X-Admin-Token`· καμία απάντηση με γεύματα ή κείμενα.
+
 ## Αρχική προδιαγραφή (αυτούσια)
 
 ```text

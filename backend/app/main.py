@@ -22,12 +22,14 @@ from app.api import admin, ask, auth, cards, days, feedback, foods, health, me, 
 from app.api.docs import APP_VERSION, DESCRIPTION, SWAGGER_UI_PARAMETERS, TAGS, install_openapi
 from app.config import Settings, get_settings
 from app.core.clock import utcnow
+from app.core.exceptions import install_exception_handlers
 from app.core.logging import install_access_log, setup_logging
 from app.db.session import make_engine, make_sessionmaker
 from app.services.auth_service import LoginLimiter
 from app.services.food_catalog import load_catalog
 from app.services.photo_pipeline import build_photo_pipeline
 from app.services.suggestion_service import DeterministicTextExtractor
+from app.services.system_status import http_llm_probe
 
 API_PREFIX = "/api/v1"
 
@@ -49,7 +51,8 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     settings = settings or get_settings()
     setup_logging(settings.LOG_LEVEL)
     catalog = load_catalog(settings.data_path(settings.FOODS_CSV), settings.data_path(settings.FOOD_ALIASES_CSV),
-                           settings.DATA_DIR / "efsa_drv.csv", settings.DATA_DIR / "food_groups.csv")
+                           settings.DATA_DIR / "efsa_drv.csv", settings.DATA_DIR / "food_groups.csv",
+                           settings.data_path(settings.DISPLAY_FOOD_GROUPS_CSV))
     if settings.ENVIRONMENT == "production" and catalog.has_demo:
         raise StartupError("refusing to start in production: the food table contains demo rows (is_demo=true)")
     docs = settings.docs_enabled
@@ -67,6 +70,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     app.state.presenter = build_presenter(settings)
     app.state.photo_pipeline = build_photo_pipeline(settings)
     app.state.text_extractor = DeterministicTextExtractor(catalog)
+    app.state.llm_probe = http_llm_probe        # έλεγχος του LLM για το /admin/system-status (τα tests το αλλάζουν)
     app.state.login_limiter = LoginLimiter(settings.LOGIN_MAX_FAILURES, timedelta(minutes=settings.LOGIN_WINDOW_MINUTES))
 
     if settings.cors_origins:
@@ -74,6 +78,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                            allow_methods=["GET", "POST", "PATCH", "DELETE"],
                            allow_headers=["Authorization", "Content-Type"])
     install_access_log(app)
+    install_exception_handlers(app)
 
     for module in (health, auth, me, foods, meals, days, feedback, cards, ask, admin):
         app.include_router(module.router, prefix=API_PREFIX)

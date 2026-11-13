@@ -18,11 +18,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
 from app.config import Settings  # noqa: E402
-from app.core import audit  # noqa: E402
-from app.db.models import Alert, Participant  # noqa: E402
+from app.db.models import Participant  # noqa: E402
 from app.db.models.alert import MAX_NOTE_CHARS  # noqa: E402
 from app.db.models.enums import AlertKind  # noqa: E402
 from app.db.session import make_engine, make_sessionmaker  # noqa: E402
+from app.services import alert_service  # noqa: E402
 
 CATEGORY = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 
@@ -49,11 +49,7 @@ def main(argv: Optional[list[str]] = None, settings: Optional[Settings] = None) 
         if db.get(Participant, args.participant) is None:
             print("unknown participant", file=sys.stderr)
             return 1
-        alert = Alert(participant_id=args.participant, kind=args.kind, category=args.category, note=args.note)
-        db.add(alert)
-        db.flush()
-        audit.record(db, "alert_created", args.participant, alert_id=str(alert.id), kind=args.kind,
-                     category=args.category)
+        alert = alert_service.create_alert(db, args.participant, args.kind, args.category, args.note)   # + γεγονός, audit
         db.commit()
         alert_id = alert.id
     engine.dispose()

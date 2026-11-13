@@ -1,13 +1,14 @@
 """
-app/schemas/meal.py — γεύματα και ημέρες. Καμία έξοδος δεν περιέχει γραμμάρια ή θρεπτικά (R1): μόνο όνομα τροφίμου
-και μερίδα ως λέξη (small | medium | large).
+app/schemas/meal.py — γεύματα και ημέρες. Καμία έξοδος δεν περιέχει γραμμάρια ή θρεπτικά (R1): μόνο όνομα τροφίμου,
+κωδικός ομάδας και μερίδα ως λέξη (small | medium | large).
 """
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.clock import aware
 from app.db.models.enums import MealSlot, MealSource, Portion
 from app.services.meal_service import MAX_ITEMS_PER_MEAL
 
@@ -21,24 +22,43 @@ class ConfirmItem(BaseModel):
 
 class ConfirmMeal(BaseModel):
     model_config = ConfigDict(extra="forbid")       # π.χ. "grams" από τον client απορρίπτεται
+    # Κλειδί idempotency που φτιάχνει ο client (UUID) μία φορά ανά γεύμα: η ουρά offline μπορεί να ξαναστείλει το ίδιο.
+    client_meal_id: uuid.UUID
     eaten_on: date
     meal_slot: MealSlot
     source: MealSource
     items: list[ConfirmItem] = Field(min_length=1, max_length=MAX_ITEMS_PER_MEAL)
 
 
+class ConfirmOut(BaseModel):
+    """Απάντηση του /meals/confirm: ό,τι χρειάζεται το S11 («Το μεσημεριανό σου είχε όσπρια»). Χωρίς γραμμάρια."""
+    meal_id: uuid.UUID
+    eaten_on: date
+    meal_slot: MealSlot
+    food_groups: list[str]                       # κωδικοί με shown=true, στη σειρά εμφάνισης
+    created: bool                                # false: το client_meal_id υπήρχε ήδη (επανάληψη), κανένα νέο γεύμα
+
+
 class MealItemOut(BaseModel):
     food_id: str
     name_el: str
     portion: Portion
+    food_group: Optional[str]                    # null μόνο αν το τρόφιμο δεν υπάρχει πια στον πίνακα
+    ai_suggested: bool
 
 
 class MealOut(BaseModel):
-    id: uuid.UUID
+    meal_id: uuid.UUID
     eaten_on: date
     meal_slot: MealSlot
     source: MealSource
+    created_at: datetime
     items: list[MealItemOut]
+
+    @field_validator("created_at")
+    @classmethod
+    def _utc(cls, v: datetime) -> datetime:      # το SQLite δεν κρατά ζώνη: πάντα UTC με offset στην έξοδο
+        return aware(v)
 
 
 class DayOut(BaseModel):
@@ -51,11 +71,19 @@ class TextRequest(BaseModel):
     text: str = Field(min_length=1, max_length=300)
 
 
-class SuggestionOut(BaseModel):
-    food_id: Optional[str]                       # null: δεν βρέθηκε στον πίνακα τροφίμων (το παιδί ψάχνει)
+class AlternativeOut(BaseModel):
+    food_id: str
     name_el: str
-    label_en: Optional[str] = None
+
+
+class SuggestionOut(BaseModel):
+    food_id: Optional[str]                       # null: δεν βρέθηκε στον πίνακα (το παιδί διαλέγει από τα alternatives ή ψάχνει)
+    name_el: str
     confidence_word: Literal["σίγουρο", "ίσως"]  # ποτέ αριθμός (R1)
+    alternatives: list[AlternativeOut] = Field(default_factory=list, max_length=3)   # χωρίς σκορ
+    portion: Optional[Portion] = None            # πάντα null σήμερα: δεν υπάρχει μοντέλο μερίδας (πεδίο για το μέλλον)
+    # Πάντα null. ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ (διαιτολόγος): υλικά σύνθετου πιάτου. ΜΟΝΟ schema· καμία υλοποίηση.
+    components: None = None
 
 
 class SuggestionsOut(BaseModel):

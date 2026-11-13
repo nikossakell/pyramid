@@ -32,7 +32,8 @@ def settings_overrides():
 def log_days(client, headers, n_days, complete=True, menu=MENU):
     for k in range(n_days):
         day = (today() - timedelta(days=k)).isoformat()
-        r = client.post("/api/v1/meals/confirm", json={"eaten_on": day, "meal_slot": "lunch", "source": "manual",
+        r = client.post("/api/v1/meals/confirm", json={"client_meal_id": str(uuid.uuid4()), "eaten_on": day,
+                                                       "meal_slot": "lunch", "source": "manual",
                                                        "items": menu}, headers=headers)
         assert r.status_code == 201, r.text
         if complete:
@@ -50,7 +51,8 @@ def test_messages_from_three_complete_days(client, child, db):
     assert all(uuid.UUID(m["id"]) for m in body["messages"])
     texts = " ".join(m["text"] for m in body["messages"])
     assert "ασβέστιο" in texts and "σίδηρο" in texts
-    assert body["food_groups_today"] == ["dairy", "fruit", "meat", "salty_snacks", "whole_grains"]
+    # μόνο ομάδες με shown=true, στη σειρά εμφάνισης: τα πατατάκια του μενού (salty_snacks) δεν εμφανίζονται
+    assert body["food_groups_today"] == ["fruit", "whole_grains", "dairy", "meat"]
     assert_no_numbers(body)                                                     # R1
     for forbidden in ("R-", "MSG-", "likely_", "status", "rule_id", "usual_intake", "PRI"):
         assert forbidden not in r.text

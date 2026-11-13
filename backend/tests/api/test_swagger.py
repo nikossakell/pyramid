@@ -56,13 +56,21 @@ def test_examples_use_today_and_valid_foods(app, client, openapi, child):
     for ex in examples.values():
         assert ex["value"]["eaten_on"] == today
         assert client.post("/api/v1/meals/confirm", json=ex["value"], headers=headers).status_code == 201   # δουλεύει όπως είναι
+        again = client.post("/api/v1/meals/confirm", json=ex["value"], headers=headers)   # δεύτερο Execute: idempotent
+        assert again.status_code == 200 and again.json()["created"] is False
+    ids = [ex["value"]["client_meal_id"] for ex in examples.values()]
+    assert len(set(ids)) == len(ids)
+    fresh = client.get("/openapi.json").json()["paths"]["/api/v1/meals/confirm"]["post"]["requestBody"]["content"][
+        "application/json"]["examples"]
+    assert not {ex["value"]["client_meal_id"] for ex in fresh.values()} & set(ids)      # νέα κλειδιά σε κάθε φόρτωση
 
 
 def test_every_endpoint_is_documented(openapi):
-    expected = {"/api/v1/health", "/api/v1/auth/login", "/api/v1/me", "/api/v1/foods/search", "/api/v1/meals/photo",
+    expected = {"/api/v1/health", "/api/v1/auth/login", "/api/v1/me", "/api/v1/foods/search", "/api/v1/food-groups", "/api/v1/meals/photo",
                 "/api/v1/meals/text", "/api/v1/meals/confirm", "/api/v1/meals", "/api/v1/meals/{meal_id}",
-                "/api/v1/days/{day}/complete", "/api/v1/feedback/today", "/api/v1/cards", "/api/v1/cards/{card_id}/open",
-                "/api/v1/ask", "/api/v1/admin/alerts", "/api/v1/admin/alerts/{alert_id}/status",
+                "/api/v1/days", "/api/v1/days/{day}/complete", "/api/v1/feedback/today", "/api/v1/cards", "/api/v1/cards/{card_id}/open",
+                "/api/v1/ask", "/api/v1/admin/alerts", "/api/v1/admin/alerts/{alert_id}", "/api/v1/admin/alerts/{alert_id}/status",
+                "/api/v1/admin/participants", "/api/v1/admin/system-status",
                 "/api/v1/admin/participants/{participant_id}/deactivate", "/api/v1/admin/photo-suspensions"}
     assert set(openapi["paths"]) == expected
     assert all(op.get("summary") for ops in openapi["paths"].values() for op in ops.values())
@@ -87,3 +95,11 @@ def test_docs_can_be_switched_off_outside_production():
     app = build_app(API_DOCS=False)
     with TestClient(app) as client:
         assert client.get("/docs").status_code == 404
+
+
+def test_login_documents_retry_after_and_study_end(openapi):
+    responses = openapi["paths"]["/api/v1/auth/login"]["post"]["responses"]
+    assert "Retry-After" in responses["429"]["headers"]
+    assert responses["403"]["content"]["application/json"]["examples"]["study_ended"]["value"] == {"study_ended": True}
+    me = openapi["components"]["schemas"]["MeResponse"]["properties"]["photo_status"]
+    assert me["enum"] == ["available", "suspended", "unavailable"]

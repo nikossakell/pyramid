@@ -11,7 +11,7 @@ app/services/feedback_service.py — η σημερινή ανατροφοδότ�
     χαρτί: η πρωτεΐνη δίνει insufficient_data — ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ).
   - MealEntry με logged_at = eaten_on στις 12:00: το rule_engine/evaluation.py ομαδοποιεί με logged_at.date().
   - is_complete από το day_status. Ημέρα με τρόφιμο που δεν υπάρχει πια στον πίνακα: όχι πλήρης (άγνωστο, όχι μηδέν).
-  - data_versions = sha256 των CSV (πίνακας τροφίμων, συνώνυμα, efsa_drv, food_groups).
+  - data_versions = sha256 των CSV (πίνακας τροφίμων, συνώνυμα, efsa_drv, food_groups, display_food_groups).
 Ασφάλεια: όσο υπάρχει alert με kind=safety και status ≠ closed, καμία ανατροφοδότηση πρόσληψης δεν φτάνει στο παιδί
 (ΠΡΟΣΧΕΔΙΟ, έγκριση παιδίατρου). Τα alerts kind=operational δεν επηρεάζουν.
 
@@ -82,8 +82,9 @@ def _last_change(db: Session, participant_id: uuid.UUID, start: date, end: date)
 
 
 def _food_groups_today(meals: list[Meal], catalog: FoodCatalog, today: date) -> list[str]:
-    return sorted({f.food_group for m in meals if m.eaten_on == today for i in m.items
-                   if (f := catalog.get(i.food_id)) is not None})
+    """Μόνο ομάδες με shown=true (display_food_groups.csv), στη σειρά εμφάνισης."""
+    return catalog.shown_groups(f.food_group for m in meals if m.eaten_on == today for i in m.items
+                                if (f := catalog.get(i.food_id)) is not None)
 
 
 def _view_from_record(record: FeedbackRecord, groups: list[str], reused: bool) -> FeedbackView:

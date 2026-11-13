@@ -13,6 +13,11 @@ app/services/food_catalog.py — ο πίνακας τροφίμων (στατι�
 σταματά. Κενή τιμή = άγνωστη, όχι μηδέν. Οι μερίδες σε γραμμάρια είναι ΠΡΟΣΧΕΔΙΟ (ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ).
 Συνώνυμα (FOOD_ALIASES_CSV): food_id, alias.
 
+Ομάδες εμφάνισης (DISPLAY_FOOD_GROUPS_CSV, ΠΡΟΣΧΕΔΙΟ — έγκριση διαιτολόγου): code, label_el, shown, sort, status.
+Οι 11 κύριες ομάδες (Απόφαση 16) όπως τις βλέπει το παιδί. shown=false: η ομάδα υπάρχει για αναζήτηση/κατηγορίες,
+αλλά το UI δεν τη δείχνει ως «ομάδα που είχες» (δεν μπαίνει στο food_groups_today ούτε στην απάντηση του confirm).
+Κάθε κύρια ομάδα τροφίμου του πίνακα πρέπει να υπάρχει εδώ· αλλιώς η φόρτωση σταματά.
+
 Κάθε αρχείο παίρνει sha256 (versions): μπαίνει στα data_versions του engine και στο audit (Κανόνας 5).
 """
 import csv
@@ -20,9 +25,9 @@ import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
-from ai_pipeline.food_resolver import FoodResolver
+from ai_pipeline.food_resolver import FoodResolver, key as resolver_key
 from rule_engine.models import FoodItem
 
 from app.db.models.enums import Portion
@@ -62,10 +67,19 @@ class CatalogFood:
 
 
 @dataclass(frozen=True)
+class DisplayGroup:
+    code: str
+    label_el: str
+    shown: bool                        # False: δεν εμφανίζεται ως «ομάδα που είχες»
+    sort: int                          # σειρά εμφάνισης· δεν βγαίνει στο API (η λίστα επιστρέφεται ταξινομημένη)
+
+
+@dataclass(frozen=True)
 class FoodCatalog:
     foods: dict[str, CatalogFood]
     resolver: FoodResolver
     versions: dict[str, str]           # όνομα αρχείου -> sha256
+    display_groups: tuple[DisplayGroup, ...] = ()   # ταξινομημένες κατά sort· κενό = χωρίς αρχείο εμφάνισης
 
     @property
     def has_demo(self) -> bool:
@@ -79,6 +93,21 @@ class FoodCatalog:
 
     def food_items(self) -> dict[str, FoodItem]:
         return {fid: f.item for fid, f in self.foods.items()}
+
+    @property
+    def group_codes(self) -> frozenset[str]:
+        """Οι κύριες ομάδες που δέχεται το API (αρχείο εμφάνισης ή, αν λείπει, οι ομάδες των τροφίμων)."""
+        return frozenset(g.code for g in self.display_groups) or frozenset(f.food_group for f in self.foods.values())
+
+    def shown_groups(self, codes: Iterable[str]) -> list[str]:
+        """Από τους κωδικούς, μόνο όσοι έχουν shown=true, με τη σειρά εμφάνισης. Χωρίς αρχείο εμφάνισης: όλοι, αλφαβητικά."""
+        codes = set(codes)
+        if not self.display_groups:
+            return sorted(codes)
+        return [g.code for g in self.display_groups if g.shown and g.code in codes]
+
+    def foods_in_group(self, code: str) -> list[CatalogFood]:
+        return sorted((f for f in self.foods.values() if f.food_group == code), key=lambda f: resolver_key(f.name_el))
 
 
 def drv_unit_numerators(efsa_drv_csv: Path) -> dict[str, str]:
@@ -115,7 +144,37 @@ def _float(value: str, where: str, allow_empty: bool) -> Optional[float]:
     return v
 
 
-def load_catalog(foods_csv: Path, aliases_csv: Path, efsa_drv_csv: Path, food_groups_csv: Path) -> FoodCatalog:
+DISPLAY_COLUMNS = ("code", "label_el", "shown", "sort")
+
+
+def load_display_groups(display_csv: Path, known_groups: set[str]) -> tuple[DisplayGroup, ...]:
+    display_csv = Path(display_csv)
+    out: dict[str, DisplayGroup] = {}
+    with display_csv.open(encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        missing = [c for c in DISPLAY_COLUMNS if c not in (reader.fieldnames or [])]
+        if missing:
+            raise FoodCatalogError(f"{display_csv.name}: missing columns {missing}")
+        for line, r in enumerate(reader, start=2):
+            where = f"{display_csv.name} line {line}"
+            code, label = (r["code"] or "").strip(), (r["label_el"] or "").strip()
+            shown, sort = (r["shown"] or "").strip().lower(), (r["sort"] or "").strip()
+            if code not in known_groups:
+                raise FoodCatalogError(f"{where}: group {code!r} not in food_groups.csv")
+            if code in out:
+                raise FoodCatalogError(f"{where}: duplicate group {code!r}")
+            if not label or re.search(r"\d", label):
+                raise FoodCatalogError(f"{where}: label_el empty or with digits")
+            if shown not in ("true", "false") or not sort.isdigit():
+                raise FoodCatalogError(f"{where}: shown must be true/false and sort a whole number")
+            out[code] = DisplayGroup(code, label, shown == "true", int(sort))
+    if not out:
+        raise FoodCatalogError(f"{display_csv.name}: no groups")
+    return tuple(sorted(out.values(), key=lambda g: (g.sort, g.code)))
+
+
+def load_catalog(foods_csv: Path, aliases_csv: Path, efsa_drv_csv: Path, food_groups_csv: Path,
+                 display_groups_csv: Optional[Path] = None) -> FoodCatalog:
     foods_csv, aliases_csv = Path(foods_csv), Path(aliases_csv)
     units = drv_unit_numerators(efsa_drv_csv)
     groups = _group_ids(food_groups_csv)
@@ -173,5 +232,14 @@ def load_catalog(foods_csv: Path, aliases_csv: Path, efsa_drv_csv: Path, food_gr
     except ValueError as e:
         raise FoodCatalogError(f"{aliases_csv.name}: {e}") from e
 
-    versions = {Path(p).name: sha256_file(p) for p in (foods_csv, aliases_csv, efsa_drv_csv, food_groups_csv)}
-    return FoodCatalog(foods, resolver, versions)
+    files = [foods_csv, aliases_csv, efsa_drv_csv, food_groups_csv]
+    display: tuple[DisplayGroup, ...] = ()
+    if display_groups_csv is not None:
+        display = load_display_groups(display_groups_csv, groups)
+        codes = {g.code for g in display}
+        orphan = sorted({f.food_group for f in foods.values()} - codes)
+        if orphan:
+            raise FoodCatalogError(f"{Path(display_groups_csv).name}: food groups without display row: {orphan}")
+        files.append(Path(display_groups_csv))
+    versions = {Path(p).name: sha256_file(p) for p in files}
+    return FoodCatalog(foods, resolver, versions, display)

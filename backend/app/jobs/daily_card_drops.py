@@ -4,8 +4,11 @@
     python -m app.jobs.daily_card_drops                    # για χθες (στη ζώνη APP_TIMEZONE)
     python -m app.jobs.daily_card_drops --date 2026-11-09  # για συγκεκριμένη ημέρα
 
-Μόνο ενεργοί συμμετέχοντες της ομάδας παρέμβασης. Idempotent: δεύτερη εκτέλεση για την ίδια ημέρα δεν δίνει διπλές
-κάρτες. Βλ. app/services/card_service.py και rule_engine/card_rules.py.
+Μόνο ενεργοί συμμετέχοντες της ομάδας παρέμβασης που ήταν ακόμα στη μελέτη την ημέρα-στόχο (STUDY_DURATION_DAYS).
+Idempotent: δεύτερη εκτέλεση για την ίδια ημέρα δεν δίνει διπλές κάρτες. Με COMPLETE_DAY_MODE=auto σημειώνει πρώτα
+πλήρη την ημέρα όσων έχουν ≥ AUTO_COMPLETE_MIN_MEALS γεύματα (τυπώνει και auto_completed=).
+Κάθε εκτέλεση γράφεται στον πίνακα job_runs (αρχή, τέλος, ok / failed, πλήθος καρτών) για το /admin/system-status.
+Βλ. app/services/card_service.py και rule_engine/card_rules.py.
 """
 import argparse
 import sys
@@ -15,7 +18,7 @@ from typing import Optional
 from app.config import Settings
 from app.core.clock import local_today, utcnow
 from app.db.session import make_engine, make_sessionmaker
-from app.services.card_service import run_card_drops
+from app.services.card_service import run_card_job
 from app.services.food_catalog import load_catalog
 
 
@@ -26,12 +29,16 @@ def main(argv: Optional[list[str]] = None, settings: Optional[Settings] = None) 
     args = p.parse_args(argv)
     day = args.date or local_today(settings.tz, utcnow()) - timedelta(days=1)
     catalog = load_catalog(settings.data_path(settings.FOODS_CSV), settings.data_path(settings.FOOD_ALIASES_CSV),
-                           settings.DATA_DIR / "efsa_drv.csv", settings.DATA_DIR / "food_groups.csv")
+                           settings.DATA_DIR / "efsa_drv.csv", settings.DATA_DIR / "food_groups.csv",
+                           settings.data_path(settings.DISPLAY_FOOD_GROUPS_CSV))
     engine = make_engine(settings.DATABASE_URL.get_secret_value())
     with make_sessionmaker(engine)() as db:
-        summary = run_card_drops(db, catalog, day)
+        summary = run_card_job(db, catalog, day, settings)
     engine.dispose()
-    print(f"day={summary['day']} participants={summary['participants']} new_cards={summary['new_cards']}")
+    line = f"day={summary['day']} participants={summary['participants']} new_cards={summary['new_cards']}"
+    if settings.COMPLETE_DAY_MODE == "auto":
+        line += f" auto_completed={summary['auto_completed']}"
+    print(line)
     return 0
 
 

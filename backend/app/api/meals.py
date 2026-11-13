@@ -21,7 +21,8 @@ from app.db.models import Meal
 from app.dependencies import CatalogDep, CurrentParticipant, DbDep, NowDep, SettingsDep
 from app.core import audit
 from app.core.clock import local_today
-from app.schemas.meal import ConfirmMeal, MealItemOut, MealOut, SuggestionOut, SuggestionsOut, TextRequest
+from app.schemas.meal import (AlternativeOut, ConfirmMeal, ConfirmOut, MealItemOut, MealOut, SuggestionOut,
+                              SuggestionsOut, TextRequest)
 from app.services import meal_service
 from app.services.food_catalog import FoodCatalog
 from app.services.photo_pipeline import PhotoRejected
@@ -32,9 +33,11 @@ router = APIRouter(prefix="/meals", tags=["meals"])
 
 
 def meal_out(meal: Meal, catalog: FoodCatalog) -> MealOut:
-    return MealOut(id=meal.id, eaten_on=meal.eaten_on, meal_slot=meal.meal_slot, source=meal.source,
-                   items=[MealItemOut(food_id=i.food_id, portion=i.portion,
-                                      name_el=f.name_el if (f := catalog.get(i.food_id)) else i.food_id)
+    return MealOut(meal_id=meal.id, eaten_on=meal.eaten_on, meal_slot=meal.meal_slot, source=meal.source,
+                   created_at=meal.created_at,
+                   items=[MealItemOut(food_id=i.food_id, portion=i.portion, ai_suggested=i.ai_suggested,
+                                      name_el=f.name_el if (f := catalog.get(i.food_id)) else i.food_id,
+                                      food_group=f.food_group if f else None)
                           for i in meal.items])
 
 
@@ -43,8 +46,9 @@ def _http(e: meal_service.MealError) -> HTTPException:
 
 
 def _suggestions(items: list[Suggestion]) -> SuggestionsOut:
-    return SuggestionsOut(suggestions=[SuggestionOut(food_id=s.food_id, name_el=s.name_el, label_en=s.label_en,
-                                                     confidence_word=s.confidence_word) for s in items])
+    return SuggestionsOut(suggestions=[SuggestionOut(
+        food_id=s.food_id, name_el=s.name_el, confidence_word=s.confidence_word,
+        alternatives=[AlternativeOut(food_id=fid, name_el=name) for fid, name in s.alternatives]) for s in items])
 
 
 REJECTED = {"rejected": True}                  # ΙΔΙΟ σώμα για κάθε λόγο απόρριψης (R4)
@@ -131,37 +135,50 @@ def text(body: TextRequest, request: Request, participant: CurrentParticipant, d
     return _suggestions(items)
 
 
-# Η ημερομηνία των παραδειγμάτων γίνεται «σήμερα» σε κάθε φόρτωση του Swagger (app/api/docs.py).
+# Σε κάθε φόρτωση του Swagger η ημερομηνία των παραδειγμάτων γίνεται «σήμερα» και το client_meal_id νέο UUID
+# (app/api/docs.py). Δεύτερο «Execute» με το ίδιο σώμα: 200 και created=false (idempotency).
 CONFIRM_EXAMPLES = {
     "lunch": {"summary": "Μεσημεριανό από πρόταση φωτογραφίας", "value": {
-        "eaten_on": "TODAY", "meal_slot": "lunch", "source": "camera",
+        "client_meal_id": "NEW_UUID", "eaten_on": "TODAY", "meal_slot": "lunch", "source": "camera",
         "items": [{"food_id": "lentils", "portion": "medium", "ai_suggested": True},
                   {"food_id": "wholegrain_bread", "portion": "small", "ai_suggested": True},
                   {"food_id": "feta", "portion": "small", "ai_suggested": False}]}},
     "breakfast": {"summary": "Πρωινό με χειροκίνητη καταχώριση", "value": {
-        "eaten_on": "TODAY", "meal_slot": "breakfast", "source": "manual",
+        "client_meal_id": "NEW_UUID", "eaten_on": "TODAY", "meal_slot": "breakfast", "source": "manual",
         "items": [{"food_id": "milk", "portion": "medium", "ai_suggested": False},
                   {"food_id": "oats", "portion": "small", "ai_suggested": False},
                   {"food_id": "banana", "portion": "medium", "ai_suggested": False}]}},
 }
 
 
-@router.post("/confirm", response_model=MealOut, status_code=201,
-             summary="Αποθήκευση γεύματος που επιβεβαίωσε το παιδί (τα γραμμάρια τα υπολογίζει ο server)")
-def confirm(body: Annotated[ConfirmMeal, Body(openapi_examples=CONFIRM_EXAMPLES)], participant: CurrentParticipant,
-            db: DbDep, catalog: CatalogDep,
-            settings: SettingsDep, now: NowDep):
+CONFIRM_RESPONSES = {
+    200: {"model": ConfirmOut, "description": "Το ίδιο client_meal_id με το ίδιο σώμα είχε ήδη αποθηκευτεί: "
+                                              "επιστρέφεται το υπάρχον γεύμα (created=false), κανένα νέο"},
+    409: {"description": "Το client_meal_id υπάρχει με ΑΛΛΟ σώμα (ή το γεύμα του διαγράφηκε)",
+          "content": {"application/json": {"example": {"detail": "client_meal_id_conflict"}}}},
+}
+
+
+@router.post("/confirm", response_model=ConfirmOut, status_code=201, responses=CONFIRM_RESPONSES,
+             summary="Αποθήκευση γεύματος που επιβεβαίωσε το παιδί (idempotent με client_meal_id· γραμμάρια μόνο στον server)")
+def confirm(body: Annotated[ConfirmMeal, Body(openapi_examples=CONFIRM_EXAMPLES)], response: Response,
+            participant: CurrentParticipant, db: DbDep, catalog: CatalogDep, settings: SettingsDep, now: NowDep):
     try:
-        meal = meal_service.confirm_meal(
-            db, catalog, participant, eaten_on=body.eaten_on, meal_slot=body.meal_slot.value,
-            source=body.source.value, items=[i.model_dump(mode="json") for i in body.items],
-            settings=settings, now=now)
+        meal, created = meal_service.confirm_meal(
+            db, catalog, participant, client_meal_id=body.client_meal_id, eaten_on=body.eaten_on,
+            meal_slot=body.meal_slot.value, source=body.source.value,
+            items=[i.model_dump(mode="json") for i in body.items], settings=settings, now=now)
     except meal_service.MealError as e:
         raise _http(e) from None
-    return meal_out(meal, catalog)
+    if not created:
+        response.status_code = 200
+    groups = catalog.shown_groups(f.food_group for i in meal.items if (f := catalog.get(i.food_id)) is not None)
+    return ConfirmOut(meal_id=meal.id, eaten_on=meal.eaten_on, meal_slot=meal.meal_slot, food_groups=groups,
+                      created=created)
 
 
-@router.get("", response_model=list[MealOut], summary="Τα γεύματά μου (προεπιλογή: σήμερα, έως 31 ημέρες)")
+@router.get("", response_model=list[MealOut],
+            summary="Τα γεύματά μου (προεπιλογή: σήμερα, έως 31 ημέρες)· όνομα, ομάδα, μερίδα ως λέξη, χωρίς γραμμάρια")
 def list_meals(participant: CurrentParticipant, db: DbDep, catalog: CatalogDep, settings: SettingsDep, now: NowDep,
                from_: Optional[date] = Query(None, alias="from"), to: Optional[date] = Query(None)):
     today = local_today(settings.tz, now)

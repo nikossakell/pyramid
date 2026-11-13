@@ -3,7 +3,7 @@ import csv
 
 import pytest
 
-from app.services.food_catalog import FoodCatalogError, load_catalog
+from app.services.food_catalog import FoodCatalogError, load_catalog, sha256_file
 
 from .conftest import DATA, assert_no_numbers
 
@@ -67,7 +67,8 @@ def test_loader_rejects_bad_tables(tmp_path, transform, message):
 def test_catalog_versions_and_grams(app):
     catalog = app.state.catalog
     assert catalog.has_demo and set(catalog.versions) == {"demo_foods.csv", "demo_food_aliases.csv", "efsa_drv.csv",
-                                                          "food_groups.csv"}
+                                                          "food_groups.csv", "display_food_groups.csv"}
+    assert catalog.versions["display_food_groups.csv"] == sha256_file(DATA / "display_food_groups.csv")
     assert all(len(v) == 64 for v in catalog.versions.values())
     assert catalog.grams("lentils", "medium") == 250.0
     assert catalog.foods["lentils"].item.nutrients_per_100g["sodium"] == 0.002     # σε g, όπως το efsa_drv.csv
@@ -88,3 +89,67 @@ def test_search_endpoint(client, child):
 
 def test_search_requires_token(client):
     assert client.get("/api/v1/foods/search", params={"q": "φακ"}).status_code == 401
+
+
+# ---------- ομάδες εμφάνισης (data/display_food_groups.csv, ΠΡΟΣΧΕΔΙΟ) ----------
+
+MAIN_GROUPS = ["vegetables", "fruit", "legumes", "whole_grains", "dairy", "fish", "nuts", "meat", "eggs",
+               "processed_meat", "salty_snacks"]                              # Απόφαση 16 του 2026-11-10
+
+
+def test_display_groups_file_has_the_eleven_main_groups():
+    rows = _rows("display_food_groups.csv")
+    assert [r["code"] for r in sorted(rows, key=lambda r: int(r["sort"]))] == MAIN_GROUPS
+    assert {r["code"] for r in rows if r["shown"] == "false"} == {"processed_meat", "salty_snacks"}
+    assert all(r["status"] == "ΠΡΟΣΧΕΔΙΟ" and r["label_el"] for r in rows)        # R7: έγκριση διαιτολόγου
+    assert "olive_oil" not in {r["code"] for r in rows}                         # ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: δεν υπάρχει ομάδα «ελαιόλαδο»
+
+
+def test_food_groups_endpoint(client, child):
+    _, _, headers = child
+    r = client.get("/api/v1/food-groups", headers=headers)
+    assert r.status_code == 200
+    body = r.json()
+    assert [g["code"] for g in body] == MAIN_GROUPS                             # και οι 11, στη σειρά εμφάνισης
+    assert all(set(g) == {"code", "label_el", "shown"} for g in body)
+    assert body[2] == {"code": "legumes", "label_el": "Όσπρια", "shown": True}
+    assert [g["code"] for g in body if not g["shown"]] == ["processed_meat", "salty_snacks"]
+    assert_no_numbers(body)                                                     # R1: ούτε η στήλη sort
+    assert client.get("/api/v1/food-groups").status_code == 401
+
+
+def test_search_by_group(client, child):
+    _, _, headers = child
+    url = "/api/v1/foods/search"
+    legumes = client.get(url, params={"group": "legumes"}, headers=headers).json()
+    assert [f["name_el"] for f in legumes] == ["Ρεβίθια", "Φακές", "Φασολάδα"]   # χωρίς q: όλη η ομάδα, αλφαβητικά
+    assert all(f["food_group"] == "legumes" for f in legumes)
+    hidden = client.get(url, params={"group": "salty_snacks"}, headers=headers).json()
+    assert [f["food_id"] for f in hidden] == ["crisps"]                          # shown=false: μένει στις «Κατηγορίες»
+    both = client.get(url, params={"q": "φα", "group": "legumes"}, headers=headers).json()
+    assert {f["food_id"] for f in both} == {"lentils", "bean_soup"}
+    assert client.get(url, params={"q": "φακ", "group": "fruit"}, headers=headers).json() == []
+    for group in MAIN_GROUPS:
+        body = client.get(url, params={"group": group}, headers=headers).json()
+        assert 1 <= len(body) <= 50 and all(set(f) == {"food_id", "name_el", "food_group"} for f in body)
+        assert_no_numbers(body)
+    for bad in ("olive_oil", "leafy_greens", "", "LEGUMES"):                     # υποομάδες / άγνωστα: όχι
+        r = client.get(url, params={"group": bad}, headers=headers)
+        assert r.status_code == 422 and r.json() == {"detail": "unknown_group"}
+
+
+@pytest.mark.parametrize("transform, message", [
+    (lambda t: t.replace("legumes,Όσπρια", "pulses,Όσπρια"), "not in food_groups.csv"),
+    (lambda t: t + "fruit,Φρούτα,true,12,ΠΡΟΣΧΕΔΙΟ\n", "duplicate group"),
+    (lambda t: t.replace("Όσπρια,true", "Όσπρια,yes"), "shown must be true/false"),
+    (lambda t: t.replace("Όσπρια,true,3", "Όσπρια,true,x"), "sort a whole number"),
+    (lambda t: t.replace(",Όσπρια,", ",,"), "label_el empty"),
+    (lambda t: "\n".join(l for l in t.splitlines() if not l.startswith("nuts,")) + "\n", "without display row"),
+    (lambda t: t.replace("code,label_el,shown,sort", "code,label_el,shown"), "missing columns"),
+])
+def test_display_groups_loader_rejects_bad_files(tmp_path, transform, message):
+    (tmp_path / "d.csv").write_text(transform((DATA / "display_food_groups.csv").read_text(encoding="utf-8")),
+                                    encoding="utf-8")
+    with pytest.raises(FoodCatalogError, match=message):
+        load_catalog(DATA / "demo_foods.csv", DATA / "demo_food_aliases.csv", DATA / "efsa_drv.csv",
+                     DATA / "food_groups.csv", tmp_path / "d.csv")

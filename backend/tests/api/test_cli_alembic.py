@@ -41,8 +41,37 @@ def test_alembic_upgrade_head_matches_models_and_audit_triggers(tmp_path):
     for sql in ("UPDATE audit_log SET event='y'", "DELETE FROM audit_log"):
         with pytest.raises(sqlite3.IntegrityError, match="append-only"):
             con.execute(sql)
+    con.execute("INSERT INTO alert_events (alert_id, event, to_status, at) VALUES ('0', 'created', 'new', '2026-11-13')")
+    con.commit()
+    for sql in ("UPDATE alert_events SET event='note_updated'", "DELETE FROM alert_events"):
+        with pytest.raises(sqlite3.IntegrityError, match="alert_events is append-only"):
+            con.execute(sql)
     con.close()
     command.downgrade(cfg, "base")
+
+
+def test_migration_003_marks_existing_complete_days_as_child(tmp_path):
+    db_file = tmp_path / "old.db"
+    cfg = alembic_config(f"sqlite:///{db_file}")
+    command.upgrade(cfg, "002")
+    con = sqlite3.connect(db_file)
+    pid = "0" * 32
+    con.execute("INSERT INTO participants (id, key_hmac, sex, age_years_at_enrollment, enrollment_date, arm, active, "
+                "token_version, created_at) VALUES (?, 'h', 'F', 12, '2026-11-02', 'intervention', 1, 0, '2026-11-02')",
+                (pid,))
+    con.execute("INSERT INTO day_status (participant_id, day, completed, completed_at) VALUES (?, '2026-11-03', 1, "
+                "'2026-11-03')", (pid,))
+    con.execute("INSERT INTO day_status (participant_id, day, completed) VALUES (?, '2026-11-04', 0)", (pid,))
+    con.commit()
+    con.close()
+    command.upgrade(cfg, "head")
+    command.check(cfg)
+    con = sqlite3.connect(db_file)
+    assert con.execute("SELECT day, completed_by FROM day_status ORDER BY day").fetchall() == [
+        ("2026-11-03", "child"), ("2026-11-04", None)]
+    with pytest.raises(sqlite3.IntegrityError):
+        con.execute("UPDATE day_status SET completed_by = 'parent'")
+    con.close()
 
 
 def _load_cli():

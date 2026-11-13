@@ -52,9 +52,13 @@ class Settings(BaseSettings):
     LOGIN_WINDOW_MINUTES: int = Field(15, ge=1)       # ΠΡΟΣΧΕΔΙΟ
     # Ομάδα ελέγχου: σύμφωνα με το πρωτόκολλο δεν χρησιμοποιεί την εφαρμογή κατά τη μελέτη.
     CONTROL_ACCESS_FROM: Optional[date] = None        # ΠΡΟΣΧΕΔΙΟ: από αυτή την ημέρα (APP_TIMEZONE)· κενό = ποτέ
+    # Τέλος μελέτης (S19), ομάδα παρέμβασης: ημέρες μελέτης = enrollment_date .. enrollment_date + STUDY_DURATION_DAYS - 1.
+    # Από την επόμενη ημέρα: 403 {"study_ended": true} στο login και σε κάθε αίτημα, εκτός αν POST_STUDY_ACCESS=true.
+    STUDY_DURATION_DAYS: int = Field(84, ge=1, le=366)    # ΠΡΟΣΧΕΔΙΟ: 12 εβδομάδες (πρωτόκολλο)
+    POST_STUDY_ACCESS: bool = False                       # ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: πρόσβαση μετά το τέλος της μελέτης
 
     # --- εφαρμογή ---
-    DEMO_MODE: bool = True
+    DEMO_MODE: bool = False                           # demo φίλτρα/αναγνώριση/seed· ποτέ σε production
     # Swagger UI (/docs) και /openapi.json. Κενό = ανοιχτά εκτός production. Σε production δεν επιτρέπονται.
     API_DOCS: Optional[bool] = None
     CORS_ORIGINS: str = ""                            # λίστα χωρισμένη με κόμμα
@@ -65,8 +69,14 @@ class Settings(BaseSettings):
     DATA_DIR: Path = ROOT / "data"
     FOODS_CSV: Path = Path("demo_foods.csv")          # ΜΟΝΟ demo μέχρι να υπάρξει πραγματικός πίνακας σύνθεσης
     FOOD_ALIASES_CSV: Path = Path("demo_food_aliases.csv")
+    # ΠΡΟΣΧΕΔΙΟ (έγκριση διαιτολόγου): ομάδες όπως τις βλέπει το παιδί (ετικέτα, αν εμφανίζεται, σειρά).
+    DISPLAY_FOOD_GROUPS_CSV: Path = Path("display_food_groups.csv")
     MEAL_BACKDATE_DAYS: int = Field(1, ge=0, le=7)    # ΠΡΟΣΧΕΔΙΟ: γεύμα από σήμερα έως τόσες ημέρες πριν
     ALLOW_MEAL_DELETE: bool = False                   # ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ M07: διαγραφή γεύματος από το παιδί
+    # «Πλήρης ημέρα» (ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ #3). declared: τη δηλώνει το παιδί (POST /days/{day}/complete). auto: επιπλέον, η
+    # νυχτερινή εργασία σημειώνει πλήρη τη χθεσινή ημέρα με ≥ AUTO_COMPLETE_MIN_MEALS επιβεβαιωμένα γεύματα.
+    COMPLETE_DAY_MODE: Literal["declared", "auto"] = "declared"   # ΠΡΟΣΧΕΔΙΟ
+    AUTO_COMPLETE_MIN_MEALS: int = Field(2, ge=1, le=10)          # ΠΡΟΣΧΕΔΙΟ: ίδιο με τον ορισμό προσήλωσης
 
     # --- ανατροφοδότηση ---
     EVALUATION_WINDOW_DAYS: int = Field(7, ge=3, le=28)   # ΠΡΟΣΧΕΔΙΟ: συνήθης πρόσληψη στις τελευταίες τόσες ημέρες
