@@ -24,6 +24,8 @@ from ai_pipeline.presentation.lexicon import normalize
 
 FUZZY_MIN_RATIO = 0.85     # ΠΡΟΣΧΕΔΙΟ: όπως το final_plan
 MAX_SEARCH_LIMIT = 50
+# Προεπιλογές των δύο κατωφλίων του candidates(). Η εφαρμογή τα περνά από τις ρυθμίσεις (CANDIDATE_MIN_RATIO,
+# CANDIDATE_PREFIX_MIN του app/config.py) στον constructor· εδώ μένουν μόνο ως default για χρήση χωρίς ρυθμίσεις.
 CANDIDATE_MIN_RATIO = 0.75  # ΠΡΟΣΧΕΔΙΟ: ελάχιστη ομοιότητα για να ΠΡΟΤΑΘΕΙ (όχι να επιλεγεί) ένα τρόφιμο
 CANDIDATE_MIN_PREFIX = 4    # ΠΡΟΣΧΕΔΙΟ: ή κοινή αρχή λέξης τόσων γραμμάτων (σύνθετες λέξεις, υποκοριστικά)
 MAX_CANDIDATES = 10
@@ -51,9 +53,15 @@ class _Entry:
 
 
 class FoodResolver:
-    def __init__(self, names: Iterable[tuple[str, str]], aliases: Iterable[tuple[str, str]] = ()):
+    def __init__(self, names: Iterable[tuple[str, str]], aliases: Iterable[tuple[str, str]] = (),
+                 candidate_prefix_min: int = CANDIDATE_MIN_PREFIX, candidate_min_ratio: float = CANDIDATE_MIN_RATIO):
         """names: (food_id, name_el)· aliases: (food_id, alias). Συγκρούσεις (ίδια κανονική μορφή για δύο
-        διαφορετικά τρόφιμα) είναι σφάλμα δεδομένων και σταματούν τη φόρτωση."""
+        διαφορετικά τρόφιμα) είναι σφάλμα δεδομένων και σταματούν τη φόρτωση.
+        candidate_prefix_min / candidate_min_ratio: τα κατώφλια του candidates() (ρυθμίσεις της εφαρμογής)."""
+        if candidate_prefix_min < 1 or not 0 < candidate_min_ratio <= 1:
+            raise ValueError("candidate_prefix_min must be >= 1 and candidate_min_ratio in (0, 1]")
+        self.candidate_prefix_min = candidate_prefix_min
+        self.candidate_min_ratio = candidate_min_ratio
         self._order: dict[str, int] = {}
         self._by_text: dict[str, _Entry] = {}
         self._entries: list[_Entry] = []
@@ -123,8 +131,8 @@ class FoodResolver:
 
     def candidates(self, text: str, k: int = 3) -> list[str]:
         """Έως k food_id που μοιάζουν με το text, για να διαλέξει το παιδί. Πρώτα όσα δίνει η search() (ίδιο κείμενο,
-        αρχή λέξης, υποσυμβολοσειρά, fuzzy ≥ FUZZY_MIN_RATIO)· μετά όσα μοιράζονται αρχή λέξης ≥ CANDIDATE_MIN_PREFIX
-        γραμμάτων («ντοματοσαλάτα» ~ «ντομάτα») ή έχουν ομοιότητα ≥ CANDIDATE_MIN_RATIO (ολόκληρο κείμενο ή λέξη προς
+        αρχή λέξης, υποσυμβολοσειρά, fuzzy ≥ FUZZY_MIN_RATIO)· μετά όσα μοιράζονται αρχή λέξης ≥ candidate_prefix_min
+        γραμμάτων («ντοματοσαλάτα» ~ «ντομάτα») ή έχουν ομοιότητα ≥ candidate_min_ratio (ολόκληρο κείμενο ή λέξη προς
         λέξη), από το πιο όμοιο. Ντετερμινιστικό· δεν επιστρέφει σκορ."""
         q = key(text)
         k = max(0, min(k, MAX_CANDIDATES))
@@ -133,7 +141,8 @@ class FoodResolver:
         out = self.search(q, k)
         if len(out) >= k:
             return out[:k]
-        q_words = [w for w in q.split() if len(w) >= CANDIDATE_MIN_PREFIX]
+        prefix_min, min_ratio = self.candidate_prefix_min, self.candidate_min_ratio
+        q_words = [w for w in q.split() if len(w) >= prefix_min]
         best: dict[str, tuple[int, float]] = {}                  # food_id -> (κοινή αρχή λέξης, ομοιότητα)
         for e in self._entries:
             if e.food_id in out:
@@ -141,9 +150,9 @@ class FoodResolver:
             words = e.text.split()
             prefix = max((_common_prefix(a, b) for a in q_words for b in words), default=0)
             ratio = max(SequenceMatcher(None, a, b).ratio() for a in {q, *q_words} for b in {e.text, *words})
-            if prefix < CANDIDATE_MIN_PREFIX and ratio < CANDIDATE_MIN_RATIO:
+            if prefix < prefix_min and ratio < min_ratio:
                 continue
-            score = (prefix if prefix >= CANDIDATE_MIN_PREFIX else 0, ratio)
+            score = (prefix if prefix >= prefix_min else 0, ratio)
             if score > best.get(e.food_id, (-1, 0.0)):
                 best[e.food_id] = score
         out += sorted(best, key=lambda fid: (-best[fid][0], -best[fid][1], self._order[fid]))

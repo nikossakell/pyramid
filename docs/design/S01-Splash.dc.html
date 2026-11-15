@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>S01 Splash</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&amp;family=DM+Serif+Display&amp;family=Noto+Serif+Display:wght@600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-synthesis:none}
+a{color:#000}a:hover{color:#5E5953}
+</style>
+</helmet>
+<div style="width: 1800px; height: 1080px; box-sizing: border-box; padding: 48px; background: #E9E5DF; color: #000000; font-family: Commissioner, 'Noto Sans', system-ui, sans-serif; display: flex; flex-direction: column; gap: 32px">
+<header style="height: 72px; display: flex; align-items: center; gap: 14px"><span style="background: #000000; color: #FFFFFF; font-size: 18px; font-weight: 700; padding: 6px 12px; border-radius: 8px">S01</span><h1 style="margin: 0; font-family: 'DM Serif Display', 'Noto Serif Display', Georgia, serif; font-weight: 600; font-size: 40px">Splash / φόρτωση</h1><span style="border: 1.5px solid #000000; border-radius: 999px; font-size: 13px; font-weight: 700; padding: 3px 12px">ΚΡΑΤΑ</span></header>
+<div style="display: flex; gap: 48px">
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">α · Κανονική φόρτωση</figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #FFFFFF; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<dc-import name="TopBar" title="" avatar="{{ false }}" hint-size="390px,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding-bottom: 100px">
+<img src="/_blob/3f411d76a7dddbef1da958404e024030" alt="" style="width: 84px; height: 112px; object-fit: contain">
+<div style="font-family: 'DM Serif Display', Georgia, serif; font-size: 56px; line-height: 1">pyramid</div>
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.4" stroke-linecap="round" role="img" aria-label="Φορτώνει" style="margin-top: 24px"><circle cx="12" cy="12" r="9" stroke-opacity="0.2"></circle><path d="M21 12a9 9 0 0 0-9-9"></path></svg>
+</div>
+</div>
+</figure>
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">β · Λήψη μοντέλου στη συσκευή <span style="background: #000000; color: #FFFFFF; font-size: 12px; padding: 2px 8px; border-radius: 999px; margin-left: 6px">ΑΠΟΦΑΣΗ D1</span></figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #FFFFFF; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<dc-import name="TopBar" title="" avatar="{{ false }}" hint-size="390px,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px">
+<img src="/_blob/3f411d76a7dddbef1da958404e024030" alt="" style="width: 84px; height: 112px; object-fit: contain">
+<div style="font-family: 'DM Serif Display', Georgia, serif; font-size: 56px; line-height: 1">pyramid</div>
+</div>
+<div style="padding: 0 16px 48px">
+<div style="border-radius: 18px; border: 1.5px solid #E2DDD5; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 16px; line-height: 22px">Ετοιμάζουμε την κάμερα για αναγνώριση φαγητού. Γίνεται μόνο την πρώτη φορά.</div>
+<div role="progressbar" aria-label="Λήψη μοντέλου" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="height: 8px; border-radius: 999px; background: #E2DDD5; overflow: hidden"><div style="width: 60%; height: 100%; border-radius: 999px; background: #F14711"></div></div>
+</div>
+</div>
+</div>
+</figure>
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">γ · Χωρίς WebGPU (WebAssembly fallback)</figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #FFFFFF; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<dc-import name="TopBar" title="" avatar="{{ false }}" hint-size="390px,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px">
+<img src="/_blob/3f411d76a7dddbef1da958404e024030" alt="" style="width: 84px; height: 112px; object-fit: contain">
+<div style="font-family: 'DM Serif Display', Georgia, serif; font-size: 56px; line-height: 1">pyramid</div>
+</div>
+<div style="padding: 0 16px 48px; display: flex; flex-direction: column; gap: 12px">
+<div style="border-radius: 18px; background: #F4F1EC; padding: 16px; display: flex; gap: 12px">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8v.01"></path></svg>
+<div style="font-size: 16px; line-height: 22px">Σε αυτό το κινητό η αναγνώριση φωτογραφίας θα είναι λίγο πιο αργή. Μπορείς πάντα να γράψεις ή να ψάξεις τι έφαγες.</div>
+</div>
+<button type="button" style="height: 52px; border-radius: 16px; border: 0; background: #F14711; color: #000000; font-family: inherit; font-size: 16px; font-weight: 600">Συνέχεια</button>
+</div>
+</div>
+</figure>
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">δ · Εκτός σύνδεσης</figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #FFFFFF; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<dc-import name="TopBar" title="" avatar="{{ false }}" hint-size="390px,56px"></dc-import>
+<div role="status" style="background: #000000; color: #FFFFFF; padding: 10px 16px; display: flex; align-items: center; gap: 12px; font-size: 14px; line-height: 20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M3 3l18 18"></path><path d="M8.5 16.4a5 5 0 0 1 7 0"></path><path d="M5 12.9a10 10 0 0 1 4-2.4"></path><path d="M14.8 10.4A10 10 0 0 1 19 12.9"></path><path d="M2 9a15 15 0 0 1 5-3M10.5 5.1A15 15 0 0 1 22 9"></path></svg>Είσαι εκτός σύνδεσης.</div>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px">
+<img src="/_blob/3f411d76a7dddbef1da958404e024030" alt="" style="width: 84px; height: 112px; object-fit: contain">
+<div style="font-family: 'DM Serif Display', Georgia, serif; font-size: 56px; line-height: 1">pyramid</div>
+</div>
+<div style="padding: 0 16px 48px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 16px; line-height: 22px; text-align: center; padding: 0 8px">Αν έχεις ξαναμπεί, θα δεις ό,τι είναι αποθηκευμένο στο κινητό. Για πρώτη είσοδο χρειάζεται σύνδεση.</div>
+<button type="button" style="height: 52px; border-radius: 16px; border: 0; background: #F14711; color: #000000; font-family: inherit; font-size: 16px; font-weight: 600">Συνέχεια</button>
+<button type="button" style="height: 52px; border-radius: 16px; border: 2px solid #000000; background: #FFFFFF; color: #000000; font-family: inherit; font-size: 16px; font-weight: 600">Δοκίμασε ξανά</button>
+</div>
+</div>
+</figure>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

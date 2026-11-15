@@ -1,6 +1,7 @@
 """
 app/services/system_status.py — κατάσταση συστήματος για την κονσόλα του ερευνητή (A03). ΚΑΝΕΝΑ δεδομένο συμμετέχοντα.
 
+demo_mode: η ρύθμιση DEMO_MODE (demo φίλτρα / αναγνώριση). Μόνο εδώ και στο log εκκίνησης· τίποτα προς το παιδί.
 versions: sha256 των CSV (data_versions του engine), sha256 του rag_sources.csv (μόνο ανάγνωση), εκδόσεις presenter /
           prompt, αν ο πίνακας τροφίμων έχει demo γραμμές, ονόματα μοντέλων από τις ρυθμίσεις (ή null).
 services: db (SELECT 1), llm (GET {LLM_BASE_URL}/models με LLM_PROBE_TIMEOUT_SECONDS· "not_configured" αν λείπουν οι
@@ -88,6 +89,7 @@ def system_status(db: Session, settings: Settings, catalog: FoodCatalog, pipelin
                                          "finished_at": aware(run.finished_at), "status": run.status,
                                          "drops": run.count}
     return {
+        "demo_mode": settings.DEMO_MODE,
         "versions": {
             "app": app_version,
             "data_versions": dict(catalog.versions),

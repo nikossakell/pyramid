@@ -133,6 +133,28 @@
     `last_card_job`). Πίνακας `job_runs {id, job, day, started_at, finished_at, status, count}` που γράφει η
     νυχτερινή εργασία. Όλα με `X-Admin-Token`· καμία απάντηση με γεύματα ή κείμενα.
 
+## Τροποποιήσεις: διορθώσεις μετά τον έλεγχο (14/11/2026)
+
+Αιτιολόγηση: `docs/decisions/2026-11-12_backend_gaps.txt`, Αποφάσεις 25–38.
+
+34. **DEMO_MODE μόνο με ρητό `ENVIRONMENT=development`.** Σε κάθε άλλη περίπτωση (και όταν το `ENVIRONMENT` λείπει)
+    η εφαρμογή δεν ξεκινά. Με `DEMO_MODE=true`: γραμμή `WARNING` στην εκκίνηση και `demo_mode: true` στο
+    `/admin/system-status`. Λίστα σημείων: `docs/api.md`, «DEMO_MODE».
+35. **Έλεγχος R1 των tests.** Η εξαίρεση ημερομηνίας ισχύει μόνο σε πεδία ημερομηνίας με γνωστό όνομα και μόνο αν
+    ολόκληρη η τιμή είναι ISO 8601· τα πεδία κειμένου προς το παιδί δεν έχουν καμία εξαίρεση (εκτός «βιταμίνη B12»).
+36. **`/food-groups` → `{code, label_el, shown, sort}`** (αντικαθιστά το 27 ως προς το `sort`). Το `sort` είναι
+    σειρά εμφάνισης, όχι τιμή του R1.
+37. **Audit αναγνώρισης (χωρίς κωδικό παιδιού).** `photo_processed` / `text_processed` χωρίς `participant_id`, με
+    νέο `analysis_id` ανά ανάλυση, που επιστρέφεται στην απάντηση προτάσεων. Payload: `analysis_id`, `model_id`,
+    `model_labels` (≤ 10, χωρίς σκορ, μόνο φωτογραφία), `resolved_food_ids`, `pipeline`, `shown`. Ποτέ bytes,
+    διαστάσεις, EXIF, hash εικόνας ή κείμενο παιδιού. `/meals/confirm` δέχεται προαιρετικό `analysis_id`· για νέο
+    γεύμα γράφεται `suggestion_outcome` (με κωδικό παιδιού): ανά τρόφιμο `accepted | portion_changed |
+    alternative_chosen | removed | added`. Κανένα endpoint δεν τα εκθέτει.
+38. **Κατώφλια υποψηφίων ως ρυθμίσεις:** `CANDIDATE_PREFIX_MIN=4`, `CANDIDATE_MIN_RATIO=0.75` (ΠΡΟΣΧΕΔΙΟ)· ο
+    `FoodResolver` τα παίρνει ως παραμέτρους.
+39. **Tests σε PostgreSQL** (marker `postgres`, `PG_TEST_URL`) για τα append-only triggers.
+40. **`ENVIRONMENT` υποχρεωτικό** (καμία προεπιλογή). Αντικαθιστά τον «ρητό» έλεγχο του 34.
+
 ## Αρχική προδιαγραφή (αυτούσια)
 
 ```text

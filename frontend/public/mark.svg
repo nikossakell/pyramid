@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 128" width="96" height="128">
+  <!-- placeholder logo.mark: οι εικόνες του canvas (/_blob/…) δεν υπάρχουν στο repo -->
+  <path d="M48 6 L92 122 H4 Z" fill="#F14711"/>
+  <path d="M48 46 L76 122 H20 Z" fill="#FEB211"/>
+  <path d="M48 86 L62 122 H34 Z" fill="#B1318E"/>
+</svg>

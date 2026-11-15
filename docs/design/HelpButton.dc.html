@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>HelpButton</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&amp;family=DM+Serif+Display&amp;family=Noto+Serif+Display:wght@600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 132px; height: 44px; display: flex; justify-content: flex-end; align-items: center; font-family: Commissioner, 'Noto Sans', system-ui, sans-serif; color: #000000">
+<button type="button" aria-label="Βοήθεια: γραμμές υποστήριξης" style="height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 16px 0 12px; border-radius: 999px; border: 2px solid #000000; background: {{bg}}; color: #000000; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transform: {{shift}}; box-sizing: border-box">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"></path></svg>
+<span>Βοήθεια</span>
+</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["default","pressed"],"default":"default"},"$preview":{"width":132,"height":44}}'>
+class Component extends DCLogic {
+renderVals() {
+const pressed = (this.props.variant ?? 'default') === 'pressed';
+return { bg: pressed ? '#E39E0A' : '#FEB211', shift: pressed ? 'translateY(1px)' : 'none' };
+}
+}
+</script>
+</body>
+</html>

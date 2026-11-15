@@ -37,6 +37,8 @@ SURE, MAYBE = "σίγουρο", "ίσως"
 MAX_TEXT_CHARS = 300
 MAX_UNRESOLVED_NAME_CHARS = 60
 MAX_ALTERNATIVES = 3           # ΠΡΟΣΧΕΔΙΟ: όσα χωρούν στο M06 / S08β
+MAX_AUDIT_LABELS = 10          # ΠΡΟΣΧΕΔΙΟ: έως τόσες ετικέτες του μοντέλου στο audit (αξιολόγηση αναγνώρισης)
+MAX_AUDIT_LABEL_CHARS = 60     # ΠΡΟΣΧΕΔΙΟ
 
 
 @dataclass(frozen=True)
@@ -104,9 +106,17 @@ class DeterministicTextExtractor:
         return phrases
 
 
+def text_segments(extractor: TextExtractor, text: str) -> list[str]:
+    return list(extractor.extract(text[:MAX_TEXT_CHARS]))
+
+
 def suggestions_from_text(catalog: FoodCatalog, extractor: TextExtractor, text: str) -> list[Suggestion]:
+    return suggestions_from_segments(catalog, text_segments(extractor, text))
+
+
+def suggestions_from_segments(catalog: FoodCatalog, segments: list[str]) -> list[Suggestion]:
     out, seen = [], set()
-    for phrase in extractor.extract(text[:MAX_TEXT_CHARS]):
+    for phrase in segments:
         r = catalog.resolver.resolve(phrase)
         if r is None:
             out.append(Suggestion(None, phrase[:MAX_UNRESOLVED_NAME_CHARS], MAYBE,
@@ -134,6 +144,19 @@ def suggestions_from_photo(catalog: FoodCatalog, found: list[RecognizedFood], co
             out.append(Suggestion(r.food_id, catalog.foods[r.food_id].name_el, word,
                                   _alternatives(catalog, r.food_id, f.alternatives)))
     return out[:MAX_ITEMS_PER_MEAL]
+
+
+def model_output_for_audit(catalog: FoodCatalog, found: list[RecognizedFood]) -> tuple[list[str], list[Optional[str]]]:
+    """Η έξοδος του recognizer για το audit (αξιολόγηση του μοντέλου, ΜΟΝΟ στον server): οι ετικέτες του όπως τις
+    έδωσε (label_en· αν λείπει, το name_el), από την πιο πιθανή, έως MAX_AUDIT_LABELS, ΧΩΡΙΣ σκορ· και, στην ίδια
+    σειρά, το food_id που αντιστοίχισε ο resolver (None αν δεν βρέθηκε). Τίποτα από την ίδια την εικόνα."""
+    labels: list[str] = []
+    food_ids: list[Optional[str]] = []
+    for f in sorted(found, key=lambda x: -x.confidence)[:MAX_AUDIT_LABELS]:
+        labels.append((f.label_en or f.name_el or "")[:MAX_AUDIT_LABEL_CHARS])
+        r = catalog.resolver.resolve(f.name_el) if f.name_el else None
+        food_ids.append(r.food_id if r is not None else None)
+    return labels, food_ids
 
 
 def photo_suspended(participant: Participant, now: datetime) -> bool:

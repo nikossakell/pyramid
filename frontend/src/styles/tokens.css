@@ -1,0 +1,55 @@
+/* PYRAMID brand tokens (docs/design/Main.dc.html, v0.1). Μόνο αυτά τα χρώματα· κανένα κόκκινο σφάλματος. */
+:root {
+  --color-primary: #f14711;        /* κουμπί καταγραφής, ενεργά tabs, primary. Κείμενο πάνω του ΜΟΝΟ μαύρο */
+  --color-help: #feb211;           /* μόνο HelpButton / HelpSheet */
+  --color-help-pressed: #e39d00;
+  --color-help-surface: #fff4d6;
+  --color-help-handle: #e2c98a;
+  --color-secondary: #b1318e;      /* κάρτες, ετικέτα AI, avatar. Κείμενο λευκό */
+  --color-positive: #418a4a;       /* ομάδα τροφίμων παρούσα */
+  --color-text: #000000;
+  --color-text-muted: #5e5953;
+  --color-absent: #8c867e;         /* μόνο εικονίδια / περιγράμματα */
+  --color-bg: #ffffff;
+  --color-surface: #f4f1ec;
+  --color-surface-pressed: #e9e5df;
+  --color-line: #e2ddd5;
+  --color-ink: #000000;            /* μαύρα toasts, επιλεγμένα chips */
+  --color-on-ink: #ffffff;
+  --color-ink-pressed: #2b2926;
+  --color-scrim: rgba(0, 0, 0, 0.45);
+  --color-camera-bg: #2b2926;
+  --color-analysis-blob: #d9cfc2;
+
+  --font-display: 'DM Serif Display', 'Noto Serif Display', Georgia, serif;
+  --font-body: Commissioner, 'Noto Sans', system-ui, sans-serif;
+
+  --radius-8: 8px; --radius-12: 12px; --radius-16: 16px; --radius-24: 24px; --radius-sheet: 28px; --radius-pill: 999px;
+  --space-4: 4px; --space-8: 8px; --space-12: 12px; --space-16: 16px; --space-20: 20px; --space-24: 24px;
+  --space-32: 32px; --space-48: 48px;
+  --touch: 44px;
+  --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.16);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --motion: 180ms;
+  --text-scale: 1;                 /* S17: Κανονικό 1 · Μεγάλο 1.125 · Πολύ μεγάλο 1.25 */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #121110;
+  --color-surface: #1e1c1a;
+  --color-surface-pressed: #2b2926;
+  --color-line: #3a3733;
+  --color-text: #ffffff;
+  --color-text-muted: #b7b1a9;
+  --color-ink: #ffffff;
+  --color-on-ink: #000000;
+  --color-ink-pressed: #e2ddd5;
+  --color-scrim: rgba(0, 0, 0, 0.6);
+}
+
+:root[data-text='large'] { --text-scale: 1.125; }
+:root[data-text='xlarge'] { --text-scale: 1.25; }
+:root[data-motion='reduce'] { --motion: 0ms; }
+@media (prefers-reduced-motion: reduce) { :root:not([data-motion='full']) { --motion: 0ms; } }

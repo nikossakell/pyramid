@@ -1,0 +1,61 @@
+@import './tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html { font-synthesis: none; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: calc(16px * var(--text-scale));
+  line-height: 1.5;
+  min-height: 100dvh;
+}
+#app { min-height: 100dvh; display: flex; flex-direction: column; }
+button, input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+h1, h2, h3, p { margin: 0; }
+img, svg { display: block; }
+
+/* Τυπογραφική κλίμακα (Main: Display 32/38, Title 26/32, Heading 18/24, Body 16/24, Label 14/20, Caption 13/18) */
+.t-display { font-family: var(--font-display); font-weight: 600; font-size: calc(32px * var(--text-scale)); line-height: 1.19; }
+.t-title { font-family: var(--font-display); font-weight: 600; font-size: calc(26px * var(--text-scale)); line-height: 1.23; }
+.t-heading { font-weight: 700; font-size: calc(18px * var(--text-scale)); line-height: 1.33; }
+.t-body { font-size: calc(16px * var(--text-scale)); line-height: 1.5; }
+.t-label { font-weight: 500; font-size: calc(14px * var(--text-scale)); line-height: 1.43; }
+.t-caption { font-weight: 500; font-size: calc(13px * var(--text-scale)); line-height: 1.38; }
+.muted { color: var(--color-text-muted); }
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Σκελετός οθόνης: TopBar, περιεχόμενο με κύλιση, BottomNav */
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 100dvh; background: var(--color-bg); }
+.screen--dark { background: #000; color: #fff; }
+.screen__body { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.screen__footer { padding: 12px 16px calc(24px + var(--safe-bottom)); display: flex; flex-direction: column; gap: 8px; background: var(--color-bg); }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+
+/* Κάρτες και chips */
+.card { border: 1px solid var(--color-line); border-radius: 18px; padding: 14px 16px; }
+.card--surface { background: var(--color-surface); border-color: transparent; }
+.chip { min-height: var(--touch); border-radius: var(--radius-pill); border: 1.5px solid var(--color-absent); background: var(--color-bg); padding: 0 14px; font-weight: 500; font-size: calc(14px * var(--text-scale)); display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-checked='true'], .chip--selected { background: var(--color-ink); color: var(--color-on-ink); border: 2px solid var(--color-ink); font-weight: 700; }
+.chip--outline { border-color: var(--color-ink); font-weight: 600; }
+
+/* Πεδία */
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field__label { font-weight: 600; font-size: calc(14px * var(--text-scale)); }
+.input { min-height: 56px; border-radius: 14px; border: 2px solid var(--color-absent); padding: 0 16px; font-size: calc(18px * var(--text-scale)); background: var(--color-bg); width: 100%; }
+.input:focus { outline: none; border-color: var(--color-ink); }
+.input[disabled] { background: var(--color-surface); color: var(--color-text-muted); border-color: var(--color-line); }
+.input--error { background: var(--color-surface); border-color: var(--color-ink); }
+
+:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
+
+/* Μαύρη λωρίδα κατάστασης (offline, status) */
+.banner { background: var(--color-ink); color: var(--color-on-ink); font-size: calc(14px * var(--text-scale)); line-height: 1.43; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+
+.pressable { transition: background-color var(--motion), transform var(--motion); }
+.pressable:active { transform: scale(0.98); }

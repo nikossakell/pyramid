@@ -106,5 +106,6 @@ class ServicesOut(BaseModel):
 
 class SystemStatusOut(BaseModel):
     """Κατάσταση συστήματος (A03). Κανένα δεδομένο συμμετέχοντα, κανένα URL ή μυστικό."""
+    demo_mode: bool                 # DEMO_MODE=true: demo φίλτρα/αναγνώριση (μόνο με ρητό ENVIRONMENT=development)
     versions: VersionsOut
     services: ServicesOut

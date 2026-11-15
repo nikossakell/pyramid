@@ -1,0 +1,449 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "A01-Alerts.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "admin",
+      "title": "A01 Ειδοποιήσεις",
+      "w": 1440,
+      "x": 0,
+      "y": 300
+    },
+    "A02-AlertDetail.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "admin",
+      "title": "A02 Λεπτομέρεια",
+      "w": 1440,
+      "x": 1520,
+      "y": 300
+    },
+    "A03-SystemStatus.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "admin",
+      "title": "A03 Κατάσταση συστήματος",
+      "w": 1440,
+      "x": 3040,
+      "y": 300
+    },
+    "BottomNav.dc.html": {
+      "h": 88,
+      "page": "system",
+      "title": "C02 BottomNav",
+      "w": 390,
+      "x": 682,
+      "y": 2300
+    },
+    "C-Basics.dc.html": {
+      "h": 1640,
+      "page": "system",
+      "title": "C01–C06 Βασικά",
+      "w": 1440,
+      "x": 0,
+      "y": 2700
+    },
+    "C-Chat.dc.html": {
+      "h": 1760,
+      "page": "system",
+      "title": "C20–C25 Συνομιλία",
+      "w": 1440,
+      "x": 6080,
+      "y": 2700
+    },
+    "C-Feedback.dc.html": {
+      "h": 1100,
+      "page": "system",
+      "title": "C26–C29 Καταστάσεις",
+      "w": 1440,
+      "x": 7600,
+      "y": 2700
+    },
+    "C-Logging.dc.html": {
+      "h": 1440,
+      "page": "system",
+      "title": "C07–C10 Καταγραφή",
+      "w": 1440,
+      "x": 1520,
+      "y": 2700
+    },
+    "C-Rewards.dc.html": {
+      "h": 1500,
+      "page": "system",
+      "title": "C16–C19 Κάρτες & παιχνίδι",
+      "w": 1440,
+      "x": 4560,
+      "y": 2700
+    },
+    "C-Today.dc.html": {
+      "h": 1400,
+      "page": "system",
+      "title": "C11–C15 Σήμερα",
+      "w": 1440,
+      "x": 3040,
+      "y": 2700
+    },
+    "Chat-A.dc.html": {
+      "h": 1080,
+      "page": "chat",
+      "title": "F1–F4",
+      "w": 1800,
+      "x": 0,
+      "y": 300
+    },
+    "Chat-B.dc.html": {
+      "h": 1080,
+      "page": "chat",
+      "title": "F5–F9",
+      "w": 2238,
+      "x": 0,
+      "y": 1500
+    },
+    "HelpButton.dc.html": {
+      "h": 44,
+      "page": "system",
+      "title": "C01 HelpButton",
+      "w": 132,
+      "x": 0,
+      "y": 2300
+    },
+    "Main.dc.html": {
+      "h": 1700,
+      "page": "system",
+      "title": "Brand & tokens",
+      "w": 1440,
+      "x": 0,
+      "y": 300
+    },
+    "Modals-A.dc.html": {
+      "h": 1080,
+      "page": "modals",
+      "title": "M01–M05",
+      "w": 2238,
+      "x": 0,
+      "y": 300
+    },
+    "Modals-B.dc.html": {
+      "h": 1080,
+      "page": "modals",
+      "title": "M06–M10",
+      "w": 2238,
+      "x": 0,
+      "y": 1500
+    },
+    "S01-Splash.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S01 Splash",
+      "w": 1800,
+      "x": 0,
+      "y": 300
+    },
+    "S02-Login.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S02 Είσοδος",
+      "w": 2238,
+      "x": 1880,
+      "y": 300
+    },
+    "S03-Onboarding.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S03 Πρώτη χρήση",
+      "w": 2238,
+      "x": 4198,
+      "y": 300
+    },
+    "S04-Today.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S04 Σήμερα",
+      "w": 1800,
+      "x": 0,
+      "y": 1800
+    },
+    "S05-NewLog.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S05 Νέα καταγραφή",
+      "w": 924,
+      "x": 1880,
+      "y": 1800
+    },
+    "S06-Camera.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S06 Κάμερα",
+      "w": 1362,
+      "x": 2884,
+      "y": 1800
+    },
+    "S07-Analysis.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S07 Ανάλυση",
+      "w": 924,
+      "x": 4326,
+      "y": 1800
+    },
+    "S08-Confirm.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S08 Επιβεβαίωση",
+      "w": 1800,
+      "x": 0,
+      "y": 3300
+    },
+    "S09-TextLog.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S09 Γράψε τι έφαγες",
+      "w": 1800,
+      "x": 1880,
+      "y": 3300
+    },
+    "S10-Search.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S10 Ψάξε φαγητό",
+      "w": 1362,
+      "x": 3760,
+      "y": 3300
+    },
+    "S11-Saved.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S11 Αποθηκεύτηκε",
+      "w": 486,
+      "x": 5202,
+      "y": 3300
+    },
+    "S12-History.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S12 Ιστορικό",
+      "w": 924,
+      "x": 5768,
+      "y": 3300
+    },
+    "S13-Assistant.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S13 Βοηθός",
+      "w": 1800,
+      "x": 0,
+      "y": 4800
+    },
+    "S14-Cards.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S14 Κάρτες",
+      "w": 924,
+      "x": 1880,
+      "y": 4800
+    },
+    "S15-Game.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S15 Παιχνίδι",
+      "w": 1800,
+      "x": 2884,
+      "y": 4800
+    },
+    "S16-Missions.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S16 Αποστολές (ΑΠΟΦΑΣΗ D6)",
+      "w": 486,
+      "x": 4764,
+      "y": 4800
+    },
+    "S17-Profile.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S17 Προφίλ",
+      "w": 486,
+      "x": 0,
+      "y": 6300
+    },
+    "S18-Privacy.dc.html": {
+      "h": 1736,
+      "page": "screens",
+      "title": "S18 Απόρρητο & AI",
+      "w": 486,
+      "x": 566,
+      "y": 6300
+    },
+    "S19-StudyEnd.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S19 Τέλος μελέτης",
+      "w": 486,
+      "x": 1132,
+      "y": 6300
+    },
+    "S20-Offline.dc.html": {
+      "h": 1080,
+      "page": "screens",
+      "title": "S20 Εκτός σύνδεσης",
+      "w": 924,
+      "x": 1698,
+      "y": 6300
+    },
+    "TopBar.dc.html": {
+      "h": 56,
+      "page": "system",
+      "title": "C03 TopBar",
+      "w": 390,
+      "x": 212,
+      "y": 2300
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-20T12:58:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "n-admin": {
+      "kind": "title1",
+      "maxW": 4480,
+      "page": "admin",
+      "text": "Κονσόλα ερευνητή · desktop, μόνο μέσω VPN",
+      "w": 240,
+      "x": 0,
+      "y": 40
+    },
+    "n-lib": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "system",
+      "text": "Βιβλιοθήκη components C01–C29",
+      "w": 240,
+      "x": 0,
+      "y": 2440
+    },
+    "n-rowA": {
+      "kind": "title1",
+      "maxW": 6436,
+      "page": "screens",
+      "text": "Είσοδος & πρώτη χρήση",
+      "w": 240,
+      "x": 0,
+      "y": 40
+    },
+    "n-rowB": {
+      "kind": "title1",
+      "maxW": 5250,
+      "page": "screens",
+      "text": "Καθημερινή χρήση · καταγραφή",
+      "w": 240,
+      "x": 0,
+      "y": 1540
+    },
+    "n-rowC": {
+      "kind": "title1",
+      "maxW": 6692,
+      "page": "screens",
+      "text": "Επιβεβαίωση, κείμενο, αναζήτηση, ιστορικό",
+      "w": 240,
+      "x": 0,
+      "y": 3040
+    },
+    "n-rowD": {
+      "kind": "title1",
+      "maxW": 5250,
+      "page": "screens",
+      "text": "Βοηθός, κάρτες, αποστολές",
+      "w": 240,
+      "x": 0,
+      "y": 4540
+    },
+    "n-rowE": {
+      "kind": "title1",
+      "maxW": 2622,
+      "page": "screens",
+      "text": "Προφίλ, απόρρητο, ειδικές καταστάσεις",
+      "w": 240,
+      "x": 0,
+      "y": 6040
+    },
+    "n-shared": {
+      "kind": "title1",
+      "maxW": 1072,
+      "page": "system",
+      "text": "Κοινά components · import σε κάθε οθόνη",
+      "w": 240,
+      "x": 0,
+      "y": 2040
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "HelpButton.dc.html",
+    "TopBar.dc.html",
+    "BottomNav.dc.html",
+    "C-Basics.dc.html",
+    "C-Logging.dc.html",
+    "C-Today.dc.html",
+    "C-Rewards.dc.html",
+    "C-Chat.dc.html",
+    "C-Feedback.dc.html",
+    "S01-Splash.dc.html",
+    "S02-Login.dc.html",
+    "S03-Onboarding.dc.html",
+    "S04-Today.dc.html",
+    "S05-NewLog.dc.html",
+    "S06-Camera.dc.html",
+    "S07-Analysis.dc.html",
+    "S08-Confirm.dc.html",
+    "S09-TextLog.dc.html",
+    "S10-Search.dc.html",
+    "S11-Saved.dc.html",
+    "S12-History.dc.html",
+    "S13-Assistant.dc.html",
+    "S14-Cards.dc.html",
+    "S15-Game.dc.html",
+    "S16-Missions.dc.html",
+    "S17-Profile.dc.html",
+    "S18-Privacy.dc.html",
+    "S19-StudyEnd.dc.html",
+    "S20-Offline.dc.html",
+    "Modals-A.dc.html",
+    "Modals-B.dc.html",
+    "Chat-A.dc.html",
+    "Chat-B.dc.html",
+    "A01-Alerts.dc.html",
+    "A02-AlertDetail.dc.html",
+    "A03-SystemStatus.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "system",
+      "name": "Brand & components"
+    },
+    {
+      "id": "screens",
+      "name": "Οθόνες S01–S20"
+    },
+    {
+      "id": "modals",
+      "name": "Modals M01–M10"
+    },
+    {
+      "id": "chat",
+      "name": "Συνομιλία F1–F9"
+    },
+    {
+      "id": "admin",
+      "name": "Κονσόλα ερευνητή"
+    }
+  ],
+  "title": "PYRAMID · PWA design"
+}

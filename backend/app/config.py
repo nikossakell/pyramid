@@ -12,6 +12,9 @@ app/config.py — ρυθμίσεις της εφαρμογής (pydantic-setting
 λιγότερους από MIN_SECRET_LENGTH χαρακτήρες, ή το CORS_ORIGINS περιέχει "*". (Ο έλεγχος «demo τρόφιμα»
 γίνεται στο create_app, όταν φορτώνεται ο πίνακας τροφίμων.)
 
+ENVIRONMENT είναι ΥΠΟΧΡΕΩΤΙΚΟ (καμία προεπιλογή, Απόφαση 37 του 2026-11-12): χωρίς αυτό η εφαρμογή δεν ξεκινά.
+DEMO_MODE=true επιτρέπεται ΜΟΝΟ με ENVIRONMENT=development· σε κάθε άλλη τιμή η εφαρμογή δεν ξεκινά (Απόφαση 25).
+
 DATA_DIR: τοπικά <repo>/data· στο container (κώδικας στο /app) είναι το /data, όπου το docker-compose κάνει mount
 το ./data — το ίδιο σημείο που περιμένει και το ai_pipeline/presentation/lexicon.py. Σχετικά paths των CSV
 λύνονται ως προς το DATA_DIR.
@@ -35,7 +38,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=str(ROOT / ".env"), env_file_encoding="utf-8", extra="ignore",
                                       case_sensitive=True, hide_input_in_errors=True)
 
-    ENVIRONMENT: Literal["development", "test", "production"] = "development"
+    ENVIRONMENT: Literal["development", "test", "production"]      # υποχρεωτικό· καμία προεπιλογή
     DATABASE_URL: SecretStr
     LOG_LEVEL: str = "INFO"
 
@@ -58,7 +61,7 @@ class Settings(BaseSettings):
     POST_STUDY_ACCESS: bool = False                       # ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: πρόσβαση μετά το τέλος της μελέτης
 
     # --- εφαρμογή ---
-    DEMO_MODE: bool = False                           # demo φίλτρα/αναγνώριση/seed· ποτέ σε production
+    DEMO_MODE: bool = False                           # demo φίλτρα/αναγνώριση/seed· μόνο με ENVIRONMENT=development
     # Swagger UI (/docs) και /openapi.json. Κενό = ανοιχτά εκτός production. Σε production δεν επιτρέπονται.
     API_DOCS: Optional[bool] = None
     CORS_ORIGINS: str = ""                            # λίστα χωρισμένη με κόμμα
@@ -71,6 +74,10 @@ class Settings(BaseSettings):
     FOOD_ALIASES_CSV: Path = Path("demo_food_aliases.csv")
     # ΠΡΟΣΧΕΔΙΟ (έγκριση διαιτολόγου): ομάδες όπως τις βλέπει το παιδί (ετικέτα, αν εμφανίζεται, σειρά).
     DISPLAY_FOOD_GROUPS_CSV: Path = Path("display_food_groups.csv")
+    # ΠΡΟΣΧΕΔΙΟ (επανέλεγχος με τον πραγματικό πίνακα): πότε ένα τρόφιμο ΠΡΟΤΕΙΝΕΤΑΙ ως εναλλακτικό (alternatives)·
+    # ποτέ αυτόματη επιλογή. Κοινή αρχή λέξης ≥ CANDIDATE_PREFIX_MIN γράμματα, ή ομοιότητα ≥ CANDIDATE_MIN_RATIO.
+    CANDIDATE_PREFIX_MIN: int = Field(4, ge=2, le=20)
+    CANDIDATE_MIN_RATIO: float = Field(0.75, gt=0, le=1)
     MEAL_BACKDATE_DAYS: int = Field(1, ge=0, le=7)    # ΠΡΟΣΧΕΔΙΟ: γεύμα από σήμερα έως τόσες ημέρες πριν
     ALLOW_MEAL_DELETE: bool = False                   # ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ M07: διαγραφή γεύματος από το παιδί
     # «Πλήρης ημέρα» (ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ #3). declared: τη δηλώνει το παιδί (POST /days/{day}/complete). auto: επιπλέον, η
@@ -146,6 +153,13 @@ class Settings(BaseSettings):
             problems.append("API_DOCS must not be true (Swagger only outside production)")
         if problems:
             raise ValueError("refusing to start in production: " + "; ".join(problems))
+        return self
+
+    @model_validator(mode="after")
+    def _demo_guard(self) -> "Settings":
+        """DEMO_MODE μόνο με ENVIRONMENT=development. (Το production έχει το δικό του μήνυμα, πιο πάνω.)"""
+        if self.DEMO_MODE and self.ENVIRONMENT not in ("development", "production"):
+            raise ValueError("refusing to start: DEMO_MODE=true is allowed only with ENVIRONMENT=development")
         return self
 
 

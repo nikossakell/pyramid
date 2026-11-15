@@ -111,10 +111,15 @@ def test_food_groups_endpoint(client, child):
     assert r.status_code == 200
     body = r.json()
     assert [g["code"] for g in body] == MAIN_GROUPS                             # και οι 11, στη σειρά εμφάνισης
-    assert all(set(g) == {"code", "label_el", "shown"} for g in body)
-    assert body[2] == {"code": "legumes", "label_el": "Όσπρια", "shown": True}
+    assert all(set(g) == {"code", "label_el", "shown", "sort"} for g in body)
+    assert body[2] == {"code": "legumes", "label_el": "Όσπρια", "shown": True, "sort": 3}
+    assert [g["sort"] for g in body] == sorted(g["sort"] for g in body)         # ακέραιοι του CSV, αύξουσα σειρά
+    assert all(type(g["sort"]) is int for g in body)
     assert [g["code"] for g in body if not g["shown"]] == ["processed_meat", "salty_snacks"]
-    assert_no_numbers(body)                                                     # R1: ούτε η στήλη sort
+    # Το `sort` είναι σειρά εμφάνισης, όχι τιμή θρεπτικού: επιτρέπεται ΜΟΝΟ εδώ (Απόφαση 28 του 2026-11-12).
+    assert_no_numbers(body, allow_int_keys=frozenset({"sort"}))
+    with pytest.raises(AssertionError, match="number at"):
+        assert_no_numbers(body)                                                 # χωρίς τη ρητή εξαίρεση πιάνεται
     assert client.get("/api/v1/food-groups").status_code == 401
 
 

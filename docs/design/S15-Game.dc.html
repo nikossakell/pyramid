@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>S15 Παιχνίδι</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&amp;family=DM+Serif+Display&amp;family=Noto+Serif+Display:wght@600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-synthesis:none}
+a{color:#FFFFFF}a:hover{color:#E2DDD5}
+</style>
+</helmet>
+<div style="width: 1800px; height: 1080px; box-sizing: border-box; padding: 48px; background: #E9E5DF; color: #000000; font-family: Commissioner, 'Noto Sans', system-ui, sans-serif; display: flex; flex-direction: column; gap: 32px">
+<header style="height: 72px; display: flex; align-items: center; gap: 14px"><span style="background: #000000; color: #FFFFFF; font-size: 18px; font-weight: 700; padding: 6px 12px; border-radius: 8px">S15</span><h1 style="margin: 0; font-family: 'DM Serif Display', 'Noto Serif Display', Georgia, serif; font-weight: 600; font-size: 40px">Παιχνίδι εναντίον υπολογιστή</h1><span style="border: 1.5px solid #000000; border-radius: 999px; font-size: 13px; font-weight: 700; padding: 3px 12px">ΚΡΑΤΑ</span><span style="font-size: 15px; color: #5E5953">μόνο εναντίον CPU · η ήττα κρίνει μόνο το παιχνίδι (R10) · μέγεθος build άγνωστο · χωρίς WebGL → C19</span></header>
+<div style="display: flex; gap: 48px">
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">α · Φόρτωση build</figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #121110; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<div style="height: 56px; flex: none; padding: 0 12px; display: flex; align-items: center; justify-content: space-between"><button type="button" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid #FFFFFF; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg>Έξοδος</button><dc-import name="HelpButton" hint-size="132px,44px"></dc-import></div>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; color: #FFFFFF; padding: 24px; text-align: center">
+<div style="display: flex"><span style="width: 64px; height: 90px; border-radius: 10px; background: #B1318E; transform: rotate(-10deg)"></span><span style="width: 64px; height: 90px; border-radius: 10px; background: #FFFFFF; margin-left: -18px; margin-top: -8px"></span><span style="width: 64px; height: 90px; border-radius: 10px; background: #F14711; margin-left: -18px; transform: rotate(10deg)"></span></div>
+<div style="font-family: 'DM Serif Display', 'Noto Serif Display', Georgia, serif; font-weight: 600; font-size: 26px">Φορτώνει το παιχνίδι…</div>
+<div role="progressbar" aria-label="Φόρτωση παιχνιδιού" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 240px; height: 10px; border-radius: 999px; background: #3A3733; overflow: hidden"><div style="width: 40%; height: 100%; border-radius: 999px; background: #B1318E"></div></div>
+<div style="font-size: 14px; color: #B7B1A9">Την πρώτη φορά μπορεί να αργήσει λίγο.</div>
+</div>
+</div>
+</figure>
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">β · Προτροπή για οριζόντιο προσανατολισμό</figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #121110; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<div style="height: 56px; flex: none; padding: 0 12px; display: flex; align-items: center; justify-content: space-between"><button type="button" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid #FFFFFF; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg>Έξοδος</button><dc-import name="HelpButton" hint-size="132px,44px"></dc-import></div>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; color: #FFFFFF; padding: 32px; text-align: center">
+<svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"></rect><path d="M3 14a9 9 0 0 0 5 6M21 10a9 9 0 0 0-5-6"></path><path d="M16 2l0 2.5-2.5 0M8 22l0-2.5 2.5 0"></path></svg>
+<div style="font-family: 'DM Serif Display', 'Noto Serif Display', Georgia, serif; font-weight: 600; font-size: 26px; line-height: 32px">Γύρισε το κινητό στο πλάι</div>
+<div style="font-size: 16px; line-height: 23px; color: #E2DDD5">Το παιχνίδι φαίνεται καλύτερα οριζόντια. [*αν το απαιτεί το build]</div>
+</div>
+</div>
+</figure>
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">γ · Παιχνίδι (iframe)</figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #121110; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<div style="height: 56px; flex: none; padding: 0 12px; display: flex; align-items: center; justify-content: space-between"><button type="button" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid #FFFFFF; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg>Έξοδος</button><dc-import name="HelpButton" hint-size="132px,44px"></dc-import></div>
+<div style="flex: 1; margin: 0 8px 28px; border-radius: 24px; background: #B1318E; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 24px">
+<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="12" height="16" rx="2"></rect><path d="M5 7v12a2 2 0 0 0 2 2h9"></path></svg>
+<div style="font-size: 16px; font-weight: 600">[Unity WebGL build σε iframe]</div>
+<div style="font-size: 14px; line-height: 20px">Νίκη ή ήττα αποδίδονται μέσα στο παιχνίδι, χωρίς σχόλιο για το παιδί.</div>
+</div>
+</div>
+</figure>
+
+<figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 12px">
+<figcaption style="height: 24px; font-size: 15px; font-weight: 600">δ · Σφάλμα φόρτωσης</figcaption>
+<div style="position: relative; width: 390px; height: 844px; border-radius: 44px; background: #121110; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px #D6D0C7, 0 16px 40px rgba(0,0,0,0.10)">
+<div style="height: 44px; flex: none"></div>
+<div style="height: 56px; flex: none; padding: 0 12px; display: flex; align-items: center; justify-content: space-between"><button type="button" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid #FFFFFF; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg>Έξοδος</button><dc-import name="HelpButton" hint-size="132px,44px"></dc-import></div>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #FFFFFF; padding: 32px; text-align: center">
+<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#FEB211" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v4M12 17v.01"></path></svg>
+<div style="font-family: 'DM Serif Display', 'Noto Serif Display', Georgia, serif; font-weight: 600; font-size: 26px">Το παιχνίδι δεν φόρτωσε</div>
+<div style="font-size: 16px; line-height: 23px; color: #E2DDD5">Έλεγξε τη σύνδεσή σου και δοκίμασε ξανά. Οι κάρτες σου μένουν στη συλλογή.</div>
+</div>
+<div style="flex: none; padding: 0 16px 40px; display: flex; flex-direction: column; gap: 10px">
+<button type="button" style="height: 52px; border-radius: 16px; border: 0; background: #FFFFFF; color: #000000; font-family: inherit; font-size: 16px; font-weight: 700">Δοκίμασε ξανά</button>
+<a href="#cards" style="height: 52px; border-radius: 16px; border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none; box-sizing: border-box">Πίσω στις κάρτες</a>
+</div>
+</div>
+</figure>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

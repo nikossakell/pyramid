@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
-from ai_pipeline.food_resolver import FoodResolver, key as resolver_key
+from ai_pipeline.food_resolver import CANDIDATE_MIN_PREFIX, CANDIDATE_MIN_RATIO, FoodResolver, key as resolver_key
 from rule_engine.models import FoodItem
 
 from app.db.models.enums import Portion
@@ -71,7 +71,7 @@ class DisplayGroup:
     code: str
     label_el: str
     shown: bool                        # False: δεν εμφανίζεται ως «ομάδα που είχες»
-    sort: int                          # σειρά εμφάνισης· δεν βγαίνει στο API (η λίστα επιστρέφεται ταξινομημένη)
+    sort: int                          # σειρά εμφάνισης (βγαίνει στο /food-groups· δεν είναι τιμή θρεπτικού)
 
 
 @dataclass(frozen=True)
@@ -174,7 +174,8 @@ def load_display_groups(display_csv: Path, known_groups: set[str]) -> tuple[Disp
 
 
 def load_catalog(foods_csv: Path, aliases_csv: Path, efsa_drv_csv: Path, food_groups_csv: Path,
-                 display_groups_csv: Optional[Path] = None) -> FoodCatalog:
+                 display_groups_csv: Optional[Path] = None, *, candidate_prefix_min: int = CANDIDATE_MIN_PREFIX,
+                 candidate_min_ratio: float = CANDIDATE_MIN_RATIO) -> FoodCatalog:
     foods_csv, aliases_csv = Path(foods_csv), Path(aliases_csv)
     units = drv_unit_numerators(efsa_drv_csv)
     groups = _group_ids(food_groups_csv)
@@ -228,7 +229,8 @@ def load_catalog(foods_csv: Path, aliases_csv: Path, efsa_drv_csv: Path, food_gr
     with aliases_csv.open(encoding="utf-8", newline="") as f:
         aliases = [((r["food_id"] or "").strip(), (r["alias"] or "").strip()) for r in csv.DictReader(f)]
     try:
-        resolver = FoodResolver(((fid, f.name_el) for fid, f in foods.items()), aliases)
+        resolver = FoodResolver(((fid, f.name_el) for fid, f in foods.items()), aliases,
+                                candidate_prefix_min=candidate_prefix_min, candidate_min_ratio=candidate_min_ratio)
     except ValueError as e:
         raise FoodCatalogError(f"{aliases_csv.name}: {e}") from e
 

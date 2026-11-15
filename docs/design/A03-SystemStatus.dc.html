@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>A03 Κατάσταση συστήματος</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&amp;family=DM+Serif+Display&amp;family=Noto+Serif+Display:wght@600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-synthesis:none}
+a{color:#000}a:hover{color:#5E5953}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F1EC; color: #000000; font-family: Commissioner, 'Noto Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+<header style="background: #000000; color: #FFFFFF; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px">
+<div style="display: flex; align-items: center; gap: 10px"><img src="/_blob/a7896c40c47a213a3830cf072aace5ff" alt="" style="width: 18px; height: 24px; object-fit: contain"><span style="font-size: 16px; font-weight: 700">PYRAMID · Κονσόλα ερευνητή</span></div>
+<span style="font-size: 13px; font-weight: 600; border: 1.5px solid #FFFFFF; border-radius: 999px; padding: 2px 10px">Μόνο μέσω VPN ΑΠΘ</span>
+<span style="margin-left: auto; font-size: 14px">[*εφημερεύων ερευνητής]</span>
+</header>
+<div style="flex: 1; display: flex; flex-wrap: wrap">
+<nav aria-label="Κονσόλα" style="flex: 1 1 220px; max-width: 260px; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; background: #FFFFFF; border-right: 1px solid #E2DDD5; box-sizing: border-box">
+<a href="A01-Alerts.dc.html" style="min-height: 44px; border-radius: 10px; padding: 0 12px; display: flex; align-items: center; font-size: 15px; font-weight: 500; text-decoration: none">Ειδοποιήσεις</a>
+<a href="A03-SystemStatus.dc.html" aria-current="page" style="min-height: 44px; border-radius: 10px; background: #000000; color: #FFFFFF; padding: 0 12px; display: flex; align-items: center; font-size: 15px; font-weight: 600; text-decoration: none">Κατάσταση συστήματος</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box">
+<div><h1 style="margin: 0; font-size: 28px; font-weight: 700">Κατάσταση συστήματος</h1><p style="margin: 6px 0 0; font-size: 14px; color: #5E5953">Εκδόσεις και υπηρεσίες. Χωρίς δεδομένα συμμετεχόντων.</p></div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<section style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #E2DDD5; border-radius: 14px; overflow: hidden">
+<h2 style="margin: 0; padding: 16px 20px; font-size: 17px; font-weight: 700; border-bottom: 1px solid #E2DDD5">Εκδόσεις</h2>
+<dl style="margin: 0; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><dt style="font-size: 15px">Μοντέλο αναγνώρισης</dt><dd style="margin: 0; font-size: 15px; font-weight: 600">[*έκδοση]</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><dt style="font-size: 15px">Εκτίμηση μερίδας (deployment gate)</dt><dd style="margin: 0; font-size: 15px; font-weight: 600">[*έκδοση / ανενεργό]</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><dt style="font-size: 15px">Krikri-8B</dt><dd style="margin: 0; font-size: 15px; font-weight: 600">[*έκδοση]</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><dt style="font-size: 15px">Prompt</dt><dd style="margin: 0; font-size: 15px; font-weight: 600">[*έκδοση]</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><dt style="font-size: 15px">Βάση γνώσης</dt><dd style="margin: 0; font-size: 15px; font-weight: 600">[*έκδοση]</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><dt style="font-size: 15px">Τιμές αναφοράς</dt><dd style="margin: 0; font-size: 15px; font-weight: 600">[*έκδοση]</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 20px"><dt style="font-size: 15px">Βάση τροφίμων</dt><dd style="margin: 0; font-size: 15px; font-weight: 600">[*έκδοση]</dd></div>
+</dl>
+</section>
+<section style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #E2DDD5; border-radius: 14px; overflow: hidden">
+<h2 style="margin: 0; padding: 16px 20px; font-size: 17px; font-weight: 700; border-bottom: 1px solid #E2DDD5">Υπηρεσίες</h2>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+<li style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><span style="font-size: 15px">API</span><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><span style="width: 10px; height: 10px; border-radius: 999px; background: #418A4A"></span>Λειτουργεί</span></li>
+<li style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><span style="font-size: 15px">Krikri-8B serving</span><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><span style="width: 10px; height: 10px; border-radius: 2px; background: #FEB211; border: 1px solid #000000"></span>Αργή απόκριση</span></li>
+<li style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><span style="font-size: 15px">Ανάκτηση (embeddings)</span><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><span style="width: 10px; height: 10px; border-radius: 999px; background: #418A4A"></span>Λειτουργεί</span></li>
+<li style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><span style="font-size: 15px">Φίλτρο ασφαλείας εισόδου/εξόδου</span><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><span style="width: 10px; height: 10px; border-radius: 999px; background: #418A4A"></span>Λειτουργεί</span></li>
+<li style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E2DDD5"><span style="font-size: 15px">Food Resolver</span><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><span style="width: 10px; height: 10px; border-radius: 999px; background: #418A4A"></span>Λειτουργεί</span></li>
+<li style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 20px"><span style="font-size: 15px">Νυχτερινή διανομή καρτών</span><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><span style="width: 10px; height: 10px; background: #000000; transform: rotate(45deg)"></span>Απέτυχε · [*ώρα]</span></li>
+</ul>
+<p style="margin: 0; padding: 12px 20px; font-size: 13px; line-height: 18px; color: #5E5953; border-top: 1px solid #E2DDD5">Αν το φίλτρο ασφαλείας δεν είναι διαθέσιμο, η συνομιλία δεν απαντά (ασφαλής αποτυχία). Οι καταστάσεις είναι δείγμα για τον σχεδιασμό.</p>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

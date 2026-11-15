@@ -8,6 +8,7 @@ Swagger UI (/docs) και /openapi.json μόνο εκτός production (API_DOCS
 Ο πίνακας τροφίμων φορτώνεται εδώ, μία φορά. Σε ENVIRONMENT=production η εφαρμογή ΑΡΝΕΙΤΑΙ να ξεκινήσει αν έχει
 demo γραμμές (οι τιμές του data/demo_foods.csv δεν είναι πραγματικές).
 """
+import logging
 from datetime import timedelta
 from typing import Optional
 
@@ -32,6 +33,7 @@ from app.services.suggestion_service import DeterministicTextExtractor
 from app.services.system_status import http_llm_probe
 
 API_PREFIX = "/api/v1"
+STARTUP_LOGGER = "pyramid.startup"
 
 
 class StartupError(RuntimeError):
@@ -52,7 +54,12 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     setup_logging(settings.LOG_LEVEL)
     catalog = load_catalog(settings.data_path(settings.FOODS_CSV), settings.data_path(settings.FOOD_ALIASES_CSV),
                            settings.DATA_DIR / "efsa_drv.csv", settings.DATA_DIR / "food_groups.csv",
-                           settings.data_path(settings.DISPLAY_FOOD_GROUPS_CSV))
+                           settings.data_path(settings.DISPLAY_FOOD_GROUPS_CSV),
+                           candidate_prefix_min=settings.CANDIDATE_PREFIX_MIN,
+                           candidate_min_ratio=settings.CANDIDATE_MIN_RATIO)
+    if settings.DEMO_MODE:      # ορατό σε κάθε εκκίνηση· μόνο σταθερές τιμές, κανένα μυστικό
+        logging.getLogger(STARTUP_LOGGER).warning(
+            "demo_mode_enabled", extra={"fields": {"demo_mode": True, "environment": settings.ENVIRONMENT}})
     if settings.ENVIRONMENT == "production" and catalog.has_demo:
         raise StartupError("refusing to start in production: the food table contains demo rows (is_demo=true)")
     docs = settings.docs_enabled

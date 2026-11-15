@@ -28,6 +28,9 @@ class ConfirmMeal(BaseModel):
     meal_slot: MealSlot
     source: MealSource
     items: list[ConfirmItem] = Field(min_length=1, max_length=MAX_ITEMS_PER_MEAL)
+    # Προαιρετικό: το analysis_id της απάντησης προτάσεων από την οποία προέκυψε το γεύμα. Μόνο για την αξιολόγηση του
+    # μοντέλου (audit suggestion_outcome)· δεν αλλάζει τίποτα στο γεύμα και δεν μετρά στη σύγκριση idempotency.
+    analysis_id: Optional[uuid.UUID] = None
 
 
 class ConfirmOut(BaseModel):
@@ -87,5 +90,8 @@ class SuggestionOut(BaseModel):
 
 
 class SuggestionsOut(BaseModel):
+    # Νέο σε κάθε ανάλυση. Ο client το ξαναστέλνει στο /meals/confirm (analysis_id) αν το γεύμα προέκυψε από αυτές τις
+    # προτάσεις. Δεν συνδέεται με το παιδί στον server μέχρι την επιβεβαίωση.
+    analysis_id: uuid.UUID
     suggestions: list[SuggestionOut]
     needs_confirmation: Literal[True] = True     # τίποτα δεν αποθηκεύεται χωρίς /meals/confirm (R3)

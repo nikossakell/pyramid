@@ -1,6 +1,7 @@
 """
 GET /foods/search?q=&group= — αυτόματη συμπλήρωση και «Κατηγορίες» (S10). ΜΟΝΟ food_id, όνομα, ομάδα (R1).
-GET /food-groups — οι κύριες ομάδες όπως τις βλέπει το παιδί (data/display_food_groups.csv, ΠΡΟΣΧΕΔΙΟ).
+GET /food-groups — οι κύριες ομάδες όπως τις βλέπει το παιδί (data/display_food_groups.csv, ΠΡΟΣΧΕΔΙΟ):
+{code, label_el, shown, sort}· το sort είναι σειρά εμφάνισης, όχι τιμή θρεπτικού.
 Το q δεν γράφεται στο log (R6).
 """
 from typing import Optional
@@ -32,4 +33,4 @@ def search_foods(_: CurrentParticipant, catalog: CatalogDep, q: str = Query("", 
 @router.get("/food-groups", response_model=list[FoodGroupOut],
             summary="Ομάδες τροφίμων για εμφάνιση, στη σειρά εμφάνισης (shown=false: όχι ως «ομάδα που είχες»)")
 def food_groups(_: CurrentParticipant, catalog: CatalogDep):
-    return [FoodGroupOut(code=g.code, label_el=g.label_el, shown=g.shown) for g in catalog.display_groups]
+    return [FoodGroupOut(code=g.code, label_el=g.label_el, shown=g.shown, sort=g.sort) for g in catalog.display_groups]

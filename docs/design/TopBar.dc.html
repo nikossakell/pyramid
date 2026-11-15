@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>TopBar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&amp;family=DM+Serif+Display&amp;family=Noto+Serif+Display:wght@600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 56px; box-sizing: border-box; padding: 0 12px 0 {{padLeft}}; display: flex; align-items: center; gap: 8px; background: {{bg}}; color: {{fg}}; font-family: Commissioner, 'Noto Sans', system-ui, sans-serif">
+<sc-if value="{{showBack}}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-label="Πίσω" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: inherit; border-radius: 999px; cursor: pointer; padding: 0">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+</button>
+</sc-if>
+<h1 style="margin: 0; flex: 1; min-width: 0; font-family: 'DM Serif Display', 'Noto Serif Display', Georgia, serif; font-weight: 600; font-size: 24px; line-height: 30px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{title}}</h1>
+<sc-if value="{{showAvatar}}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-label="Προφίλ και ρυθμίσεις" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; padding: 0; cursor: pointer">
+<span style="width: 40px; height: 40px; border-radius: 999px; background: #B1318E; display: flex; align-items: center; justify-content: center; color: #FFFFFF">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7l4 3-1.5 4.5h-5L8 10z"></path></svg>
+</span>
+</button>
+</sc-if>
+<dc-import name="HelpButton" hint-size="132px,44px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"title":{"editor":"text","default":"Σήμερα"},"back":{"editor":"boolean","default":false},"avatar":{"editor":"boolean","default":true},"tone":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":56}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = (this.props.tone ?? 'light') === 'dark';
+const back = this.props.back ?? false;
+return {
+title: this.props.title ?? 'Σήμερα',
+showBack: back,
+showAvatar: this.props.avatar ?? true,
+padLeft: back ? '4px' : '20px',
+bg: dark ? '#000000' : '#FFFFFF',
+fg: dark ? '#FFFFFF' : '#000000'
+};
+}
+}
+</script>
+</body>
+</html>

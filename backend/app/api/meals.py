@@ -23,11 +23,11 @@ from app.core import audit
 from app.core.clock import local_today
 from app.schemas.meal import (AlternativeOut, ConfirmMeal, ConfirmOut, MealItemOut, MealOut, SuggestionOut,
                               SuggestionsOut, TextRequest)
-from app.services import meal_service
+from app.services import analysis_audit, meal_service
 from app.services.food_catalog import FoodCatalog
 from app.services.photo_pipeline import PhotoRejected
-from app.services.suggestion_service import (Suggestion, photo_suspended, record_rejection, suggestions_from_photo,
-                                             suggestions_from_text)
+from app.services.suggestion_service import (Suggestion, model_output_for_audit, photo_suspended, record_rejection,
+                                             suggestions_from_photo, suggestions_from_segments, text_segments)
 
 router = APIRouter(prefix="/meals", tags=["meals"])
 
@@ -45,8 +45,8 @@ def _http(e: meal_service.MealError) -> HTTPException:
     return HTTPException(e.status_code, e.detail)
 
 
-def _suggestions(items: list[Suggestion]) -> SuggestionsOut:
-    return SuggestionsOut(suggestions=[SuggestionOut(
+def _suggestions(items: list[Suggestion], analysis_id: uuid.UUID) -> SuggestionsOut:
+    return SuggestionsOut(analysis_id=analysis_id, suggestions=[SuggestionOut(
         food_id=s.food_id, name_el=s.name_el, confidence_word=s.confidence_word,
         alternatives=[AlternativeOut(food_id=fid, name_el=name) for fid, name in s.alternatives]) for s in items])
 
@@ -120,19 +120,33 @@ async def photo(request: Request, participant: CurrentParticipant, db: DbDep, ca
         return reject(reason)
 
     items = suggestions_from_photo(catalog, found, settings.PHOTO_CONFIDENT_MIN)
-    audit.record(db, "photo_processed", participant.id, stored_bytes=0, n_suggestions=len(items),
-                 versions=pipeline.versions)
+    # Έξοδος του μοντέλου για την αξιολόγησή του, ΧΩΡΙΣ κωδικό παιδιού (app/services/analysis_audit.py): ετικέτες χωρίς
+    # σκορ, food_id του resolver, ό,τι είδε το παιδί. Ποτέ bytes, διαστάσεις, EXIF ή hash της εικόνας.
+    analysis_id = uuid.uuid4()
+    model_labels, resolved_food_ids = model_output_for_audit(catalog, found)
+    analysis_audit.record_analysis(db, "photo_processed", analysis_id, stored_bytes=0,
+                                   model_id=pipeline.versions["recognizer"], model_labels=model_labels,
+                                   resolved_food_ids=resolved_food_ids,
+                                   pipeline="demo" if settings.DEMO_MODE else "real",
+                                   shown=analysis_audit.shown(items))
     await run_in_threadpool(db.commit)
-    return _suggestions(items)
+    return _suggestions(items, analysis_id)
 
 
 @router.post("/text", response_model=SuggestionsOut, summary="Προτάσεις τροφίμων από ελεύθερο κείμενο (τίποτα δεν αποθηκεύεται)")
 def text(body: TextRequest, request: Request, participant: CurrentParticipant, db: DbDep, catalog: CatalogDep):
     extractor = request.app.state.text_extractor
-    items = suggestions_from_text(catalog, extractor, body.text)
-    audit.record(db, "text_processed", participant.id, n_suggestions=len(items), extractor=extractor.version)
-    db.commit()                                             # μόνο το γεγονός· ποτέ το κείμενο
-    return _suggestions(items)
+    segments = text_segments(extractor, body.text)
+    items = suggestions_from_segments(catalog, segments)
+    # ΧΩΡΙΣ κωδικό παιδιού και ΠΟΤΕ το κείμενό του: χωρίς model_labels (θα ήταν λέξεις του παιδιού), μόνο πλήθος τμημάτων
+    # και food_id του πίνακα (null για τμήμα που δεν βρέθηκε), στη σειρά των τμημάτων.
+    analysis_id = uuid.uuid4()
+    resolved = [r.food_id if (r := catalog.resolver.resolve(seg)) is not None else None for seg in segments]
+    analysis_audit.record_analysis(db, "text_processed", analysis_id, model_id=extractor.version,
+                                   n_segments=len(segments), resolved_food_ids=resolved, pipeline="real",
+                                   shown=analysis_audit.shown(items))
+    db.commit()
+    return _suggestions(items, analysis_id)
 
 
 # Σε κάθε φόρτωση του Swagger η ημερομηνία των παραδειγμάτων γίνεται «σήμερα» και το client_meal_id νέο UUID
@@ -172,6 +186,10 @@ def confirm(body: Annotated[ConfirmMeal, Body(openapi_examples=CONFIRM_EXAMPLES)
         raise _http(e) from None
     if not created:
         response.status_code = 200
+    elif body.analysis_id is not None:            # μόνο για νέο γεύμα: η επανάληψη δεν ξαναγράφει έκβαση
+        analysis_audit.record_outcome(db, participant.id, body.analysis_id, meal,
+                                      [i.model_dump(mode="json") for i in body.items])
+        db.commit()
     groups = catalog.shown_groups(f.food_group for i in meal.items if (f := catalog.get(i.food_id)) is not None)
     return ConfirmOut(meal_id=meal.id, eaten_on=meal.eaten_on, meal_slot=meal.meal_slot, food_groups=groups,
                       created=created)

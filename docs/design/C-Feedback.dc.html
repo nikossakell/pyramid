@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>Components C26 έως C29</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&amp;family=DM+Serif+Display&amp;family=Noto+Serif+Display:wght@600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-synthesis:none}
+a{color:#000}a:hover{color:#5E5953}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 1100px; box-sizing: border-box; padding: 72px 80px; background: #FFFFFF; color: #000000; font-family: Commissioner, 'Noto Sans', system-ui, sans-serif; display: flex; flex-direction: column; gap: 56px">
+
+<header style="display: flex; align-items: baseline; gap: 16px">
+<h1 style="margin: 0; font-family: 'DM Serif Display', 'Noto Serif Display', Georgia, serif; font-weight: 600; font-size: 48px">Καταστάσεις συστήματος</h1>
+<span style="font-size: 16px; color: #5E5953">C26–C29 · κενό, ειδοποιήσεις, σύνδεση, λήψη μοντέλου</span>
+</header>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px 64px">
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 10px"><span style="background: #000000; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 3px 8px; border-radius: 6px">C26</span><h2 style="margin: 0; font-size: 20px; font-weight: 700">EmptyState</h2><span style="border: 1.5px solid #000000; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 2px 10px">ΚΡΑΤΑ</span></div>
+<div style="display: flex; gap: 20px">
+<div style="width: 290px; border-radius: 20px; background: #F4F1EC; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; box-sizing: border-box">
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#000000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="36" cy="40" r="24"></circle><circle cx="36" cy="40" r="15" stroke-dasharray="4 5"></circle><path d="M8 18v18M4 18v8a4 4 0 0 0 8 0v-8M64 18c-3 0-5 4-5 9s2 7 5 7v20"></path></svg>
+<div style="font-size: 16px; line-height: 22px">Δεν υπάρχουν ακόμα καταγραφές. Ξεκίνα με το πρώτο σου γεύμα.</div>
+<a href="#log" style="height: 48px; padding: 0 20px; border-radius: 14px; background: #F14711; color: #000000; display: flex; align-items: center; font-size: 15px; font-weight: 600; text-decoration: none">Καταγραφή</a>
+</div>
+<div style="width: 290px; border-radius: 20px; background: #F4F1EC; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; box-sizing: border-box">
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#000000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="22" y="10" width="34" height="48" rx="6" stroke-dasharray="5 5"></rect><rect x="14" y="16" width="34" height="48" rx="6" fill="#FFFFFF"></rect><path d="M31 32v12M25 38h12"></path></svg>
+<div style="font-size: 16px; line-height: 22px">Η συλλογή σου είναι άδεια. Οι πρώτες κάρτες έρχονται το πρωί μετά την πρώτη μέρα καταγραφής.</div>
+<span style="font-size: 13px; color: #5E5953">[*κριτήρια από τους κανόνες καρτών]</span>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 10px"><span style="background: #000000; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 3px 8px; border-radius: 6px">C27</span><h2 style="margin: 0; font-size: 20px; font-weight: 700">Toast</h2><span style="border: 1.5px solid #000000; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 2px 10px">ΚΡΑΤΑ</span></div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 16px"><div role="status" style="width: 358px; min-height: 56px; box-sizing: border-box; border-radius: 16px; background: #000000; color: #FFFFFF; padding: 10px 16px; display: flex; align-items: center; gap: 12px; font-size: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.18)"><span style="width: 28px; height: 28px; border-radius: 999px; background: #418A4A; display: flex; align-items: center; justify-content: center; flex: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span>Καταγράφηκε!</div><span style="font-size: 13px; color: #5E5953">επιτυχία</span></div>
+<div style="display: flex; align-items: center; gap: 16px"><div role="status" style="width: 358px; min-height: 56px; box-sizing: border-box; border-radius: 16px; background: #000000; color: #FFFFFF; padding: 10px 16px; display: flex; align-items: center; gap: 12px; font-size: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.18)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8v.01"></path></svg>Η καταγραφή θα σταλεί μόλις συνδεθείς.</div><span style="font-size: 13px; color: #5E5953">πληροφορία</span></div>
+<div style="display: flex; align-items: center; gap: 16px"><div role="alert" style="width: 358px; min-height: 56px; box-sizing: border-box; border-radius: 16px; background: #000000; color: #FFFFFF; padding: 10px 8px 10px 16px; display: flex; align-items: center; gap: 12px; font-size: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.18)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FEB211" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M12 3l10 18H2z"></path><path d="M12 10v4M12 17v.01"></path></svg><span style="flex: 1">Κάτι πήγε στραβά. Δοκίμασε ξανά.</span><button type="button" style="height: 44px; padding: 0 12px; border: 0; border-radius: 12px; background: #2B2926; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 700">Ξανά</button></div><span style="font-size: 13px; color: #5E5953">σφάλμα · μόνο τεχνικό</span></div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 10px"><span style="background: #000000; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 3px 8px; border-radius: 6px">C28</span><h2 style="margin: 0; font-size: 20px; font-weight: 700">OfflineBanner</h2><span style="border: 1.5px solid #000000; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 2px 10px">ΚΡΑΤΑ</span></div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 16px"><div role="status" style="width: 390px; box-sizing: border-box; background: #000000; color: #FFFFFF; padding: 10px 16px; display: flex; align-items: center; gap: 12px; font-size: 14px; line-height: 20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M3 3l18 18"></path><path d="M8.5 16.4a5 5 0 0 1 7 0"></path><path d="M5 12.9a10 10 0 0 1 4-2.4"></path><path d="M14.8 10.4A10 10 0 0 1 19 12.9"></path><path d="M2 9a15 15 0 0 1 5-3M10.5 5.1A15 15 0 0 1 22 9"></path></svg>Είσαι εκτός σύνδεσης. Βλέπεις ό,τι είναι αποθηκευμένο στο κινητό.</div><span style="font-size: 13px; color: #5E5953">εκτός σύνδεσης</span></div>
+<div style="display: flex; align-items: center; gap: 16px"><div role="status" style="width: 390px; box-sizing: border-box; background: #F4F1EC; color: #000000; padding: 10px 16px; display: flex; align-items: center; gap: 12px; font-size: 14px; line-height: 20px"><span style="width: 24px; height: 24px; border-radius: 999px; background: #418A4A; display: flex; align-items: center; justify-content: center; flex: none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span>Συνδέθηκες ξανά.</div><span style="font-size: 13px; color: #5E5953">επανασύνδεση · κρύβεται αυτόματα</span></div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 10px"><span style="background: #000000; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 3px 8px; border-radius: 6px">C29</span><h2 style="margin: 0; font-size: 20px; font-weight: 700">ModelDownloadProgress</h2><span style="background: #000000; color: #FFFFFF; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 3px 10px">ΑΠΟΦΑΣΗ D1</span></div>
+<div style="font-size: 14px; color: #5E5953">Μόνο αν η ανάλυση γίνεται στη συσκευή. Μέγεθος αρχείου: άγνωστο, να μετρηθεί.</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 16px"><div style="width: 358px; box-sizing: border-box; border-radius: 18px; border: 1.5px solid #E2DDD5; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px"><div style="font-size: 15px; line-height: 21px">Ετοιμάζουμε την κάμερα για αναγνώριση φαγητού. Γίνεται μόνο την πρώτη φορά.</div><div role="progressbar" aria-label="Λήψη μοντέλου" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="height: 8px; border-radius: 999px; background: #E2DDD5; overflow: hidden"><div style="width: 60%; height: 100%; border-radius: 999px; background: #F14711"></div></div></div><span style="font-size: 13px; color: #5E5953">πρόοδος</span></div>
+<div style="display: flex; align-items: center; gap: 16px"><div style="width: 358px; box-sizing: border-box; border-radius: 18px; background: #F4F1EC; padding: 14px 16px; display: flex; align-items: center; gap: 12px"><span style="width: 28px; height: 28px; border-radius: 999px; background: #418A4A; display: flex; align-items: center; justify-content: center; flex: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span><div style="font-size: 15px">Η κάμερα είναι έτοιμη.</div></div><span style="font-size: 13px; color: #5E5953">ολοκληρώθηκε</span></div>
+<div style="display: flex; align-items: center; gap: 16px"><div style="width: 358px; box-sizing: border-box; border-radius: 18px; border: 2px solid #000000; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px"><div style="font-size: 15px; line-height: 21px">Η λήψη δεν ολοκληρώθηκε. Μέχρι τότε μπορείς να γράφεις ή να ψάχνεις τα γεύματά σου.</div><button type="button" style="align-self: flex-start; height: 44px; padding: 0 16px; border-radius: 14px; border: 2px solid #000000; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600">Δοκίμασε ξανά</button></div><span style="font-size: 13px; color: #5E5953">απέτυχε · R6</span></div>
+</div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

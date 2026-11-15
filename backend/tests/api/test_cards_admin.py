@@ -424,7 +424,7 @@ def test_system_status_without_models(app, client, child, db):
     r = client.get(STATUS, headers=ADMIN)
     assert r.status_code == 200
     body = r.json()
-    assert set(body) == {"versions", "services"}
+    assert set(body) == {"demo_mode", "versions", "services"} and body["demo_mode"] is False
     v = body["versions"]
     assert set(v) == {"app", "data_versions", "rag_sources_sha256", "prompt_version", "presenter_version",
                       "foods_is_demo", "models"}
@@ -453,6 +453,7 @@ def test_system_status_services(app, client, db):
     body = client.get(STATUS, headers=ADMIN).json()
     assert calls == [("http://llm.internal:8080/v1", 2.0)]                        # GET /models με timeout 2 s
     assert body["services"]["llm"] == "ok" and body["services"]["photo_pipeline"] == "demo"
+    assert body["demo_mode"] is True                                              # ορατό στην κονσόλα (A03)
     assert body["versions"]["models"] == {"llm": "krikri-test", "nsfw": "demo-0", "food_gate": "demo-0",
                                           "recognizer": "demo-1"}
     assert "llm.internal" not in json.dumps(body)                                 # το URL δεν βγαίνει

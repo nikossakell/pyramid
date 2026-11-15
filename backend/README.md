@@ -97,7 +97,7 @@ cd backend && python -m app.jobs.daily_card_drops                 # για χθ�
 
 | Μεταβλητή | Προεπιλογή | |
 |---|---|---|
-| `ENVIRONMENT` | `development` | `development` / `test` / `production` |
+| `ENVIRONMENT` | — (**υποχρεωτικό**) | `development` / `test` / `production`. Χωρίς αυτό η εφαρμογή, τα scripts (`create_participant.py`, `create_alert.py`, `seed_demo.py`) και η νυχτερινή εργασία δεν ξεκινούν |
 | `DATABASE_URL` | — | `postgresql+psycopg://...` (production), `sqlite:///...` (τοπικά) |
 | `JWT_SECRET`, `ACCESS_KEY_PEPPER`, `ADMIN_TOKEN` | — | ≥ 32 χαρακτήρες σε production |
 | `ACCESS_TOKEN_TTL_MINUTES` | 720 | ΠΡΟΣΧΕΔΙΟ |
@@ -106,7 +106,8 @@ cd backend && python -m app.jobs.daily_card_drops                 # για χθ�
 | `STUDY_DURATION_DAYS` | 84 | ΠΡΟΣΧΕΔΙΟ· μετά: 403 `{"study_ended": true}` για την ομάδα παρέμβασης |
 | `POST_STUDY_ACCESS` | `false` | ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: πρόσβαση μετά το τέλος της μελέτης |
 | `APP_TIMEZONE` | `Europe/Athens` | «σήμερα», ημέρες, νυχτερινή εργασία |
-| `DEMO_MODE` | `false` | demo φίλτρα/αναγνώριση φωτογραφίας· απαγορεύεται σε production |
+| `DEMO_MODE` | `false` | demo φίλτρα/αναγνώριση φωτογραφίας· `true` μόνο με `ENVIRONMENT=development`, αλλιώς η εφαρμογή δεν ξεκινά |
+| `CANDIDATE_PREFIX_MIN` / `CANDIDATE_MIN_RATIO` | 4 / 0.75 | ΠΡΟΣΧΕΔΙΟ: κατώφλια των `alternatives` (ποτέ αυτόματη επιλογή) |
 | `API_DOCS` | κενό | Swagger/OpenAPI εκτός production· απαγορεύεται σε production |
 | `FOODS_CSV`, `FOOD_ALIASES_CSV` | demo αρχεία | σε production η εφαρμογή δεν ξεκινά με demo τρόφιμα |
 | `DISPLAY_FOOD_GROUPS_CSV` | `display_food_groups.csv` | ΠΡΟΣΧΕΔΙΟ: ετικέτες, `shown`, σειρά των 11 ομάδων |
@@ -126,4 +127,23 @@ cd backend && python -m pytest -q tests                 # όλα (unit, api, int
 python -m pytest -q tests/integration/test_photo_ephemeral.py   # 1000 uploads, κανένα αρχείο (Κανόνας 7)
 ```
 
-Τα tests του API τρέχουν με SQLite in-memory και `TestClient`· δεν χρειάζονται `.env`.
+Τα tests του API τρέχουν με SQLite in-memory και `TestClient`· δεν χρειάζονται `.env` (ορίζουν μόνα τους
+`ENVIRONMENT=test`, ή `development` όσα ζητούν `DEMO_MODE=true`).
+
+### Tests σε PostgreSQL (append-only triggers)
+
+Τα triggers του `audit_log` και του `alert_events` ελέγχονται και σε πραγματική PostgreSQL
+(`tests/api/test_postgres_triggers.py`, marker `postgres`): `alembic upgrade head` + `alembic check` σε κενή βάση και
+μετά `UPDATE`, `DELETE`, `TRUNCATE` με ακατέργαστο SQL, που πρέπει να αποτύχουν. Χωρίς `PG_TEST_URL` τα tests αυτά
+παραλείπονται (skip με μήνυμα). Δεν χρειάζεται νέα εξάρτηση: το `psycopg` είναι ήδη στο `pyproject.toml`.
+
+```bash
+PW=$(openssl rand -hex 12)
+podman run -d --rm --name pyramid_pg_test -e POSTGRES_PASSWORD=$PW -p 127.0.0.1:5433:5432 postgres:16-alpine   # ή docker
+export PG_TEST_URL="postgresql+psycopg://postgres:$PW@127.0.0.1:5433/postgres"
+cd backend && python -m pytest -q -m postgres tests
+podman stop pyramid_pg_test
+```
+
+Η βάση του `PG_TEST_URL` πρέπει να είναι **κενή**: αν έχει πίνακες, τα tests αρνούνται να τρέξουν. Ποτέ τη βάση της
+μελέτης.

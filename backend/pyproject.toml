@@ -78,6 +78,7 @@ asyncio_mode = "auto"
 markers = [
   "slow: needs a model loaded",
   "gpu: needs a GPU",
+  "postgres: needs a real, empty PostgreSQL database in PG_TEST_URL (skipped without it)",
 ]
 
 [tool.ruff]

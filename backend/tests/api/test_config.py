@@ -52,6 +52,67 @@ def test_development_allows_demo_and_short_secrets():
     assert s.DEMO_MODE
 
 
+@pytest.mark.parametrize("environment", ["test", "production", "staging", ""])
+def test_demo_mode_refused_outside_explicit_development(environment):
+    with pytest.raises(ValidationError) as e:
+        create_app(make_settings(ENVIRONMENT=environment, DEMO_MODE=True))
+    assert "DEMO_MODE" in str(e.value) or "ENVIRONMENT" in str(e.value)
+    for secret in SECRETS.values():                             # μήνυμα χωρίς τιμές μυστικών
+        assert secret not in str(e.value)
+
+
+def test_environment_is_required(monkeypatch):
+    """Χωρίς ENVIRONMENT (ούτε μεταβλητή, ούτε .env) η εφαρμογή δεν ξεκινά, με ή χωρίς DEMO_MODE (Απόφαση 37)."""
+    from app.config import Settings
+    monkeypatch.delenv("ENVIRONMENT", raising=False)
+    monkeypatch.delenv("DEMO_MODE", raising=False)
+    base = {"DATABASE_URL": "sqlite://", **SECRETS}
+    for extra in ({}, {"DEMO_MODE": True}):
+        with pytest.raises(ValidationError, match="ENVIRONMENT") as e:
+            Settings(_env_file=None, **base, **extra)
+        assert all(secret not in str(e.value) for secret in SECRETS.values())
+    monkeypatch.setenv("ENVIRONMENT", "development")                              # από το περιβάλλον
+    assert Settings(_env_file=None, **base, DEMO_MODE=True).DEMO_MODE is True
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    monkeypatch.setenv("DEMO_MODE", "true")
+    with pytest.raises(ValidationError, match="only with ENVIRONMENT=development"):
+        Settings(_env_file=None, **base)
+
+
+def test_env_example_sets_environment():
+    from .conftest import DATA
+    lines = (DATA.parent / ".env.example").read_text(encoding="utf-8").splitlines()
+    assert "ENVIRONMENT=development" in lines                                     # ο οδηγός ρύθμισης το ορίζει
+
+
+def test_demo_mode_default_is_false_and_warns_at_startup(caplog):
+    import json
+    import logging
+    from app.core.logging import JsonFormatter
+    assert make_settings().DEMO_MODE is False
+    with caplog.at_level(logging.WARNING, logger="pyramid.startup"):
+        create_app(make_settings())
+        assert not [r for r in caplog.records if r.name == "pyramid.startup"]     # χωρίς DEMO_MODE: καμία γραμμή
+        create_app(make_settings(ENVIRONMENT="development", DEMO_MODE=True))
+    records = [r for r in caplog.records if r.name == "pyramid.startup"]
+    assert len(records) == 1 and records[0].levelname == "WARNING"
+    line = json.loads(JsonFormatter().format(records[0]))                         # μία γραμμή JSON
+    assert line["msg"] == "demo_mode_enabled" and line["demo_mode"] is True and line["environment"] == "development"
+    assert all(secret not in json.dumps(line) for secret in SECRETS.values()) and "sqlite" not in json.dumps(line)
+
+
+def test_candidate_thresholds_are_settings():
+    s = make_settings()
+    assert (s.CANDIDATE_PREFIX_MIN, s.CANDIDATE_MIN_RATIO) == (4, 0.75)            # ΠΡΟΣΧΕΔΙΟ
+    resolver = create_app(s).state.catalog.resolver
+    assert (resolver.candidate_prefix_min, resolver.candidate_min_ratio) == (4, 0.75)
+    strict = create_app(make_settings(CANDIDATE_PREFIX_MIN=9, CANDIDATE_MIN_RATIO=0.99)).state.catalog.resolver
+    assert resolver.candidates("σπανακόπιτα") == ["spinach"] and strict.candidates("σπανακόπιτα") == []
+    for bad in ({"CANDIDATE_PREFIX_MIN": 0}, {"CANDIDATE_MIN_RATIO": 0}, {"CANDIDATE_MIN_RATIO": 1.5}):
+        with pytest.raises(ValidationError):
+            make_settings(**bad)
+
+
 def test_empty_control_access_from_means_never_and_bad_timezone_rejected():
     assert make_settings(CONTROL_ACCESS_FROM="").CONTROL_ACCESS_FROM is None
     with pytest.raises(ValidationError, match="unknown time zone"):
