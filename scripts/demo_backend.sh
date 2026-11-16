@@ -32,6 +32,10 @@ export COMPLETE_DAY_MODE="${COMPLETE_DAY_MODE:-declared}" AUTO_COMPLETE_MIN_MEAL
 export DATA_DIR="$ROOT/data" FOODS_CSV=demo_foods.csv FOOD_ALIASES_CSV=demo_food_aliases.csv
 export DISPLAY_FOOD_GROUPS_CSV=display_food_groups.csv
 export LLM_BASE_URL="${LLM_BASE_URL:-}" LLM_MODEL="${LLM_MODEL:-}" CORS_ORIGINS="" ALLOW_MEAL_DELETE=true
+# Προαιρετικά πραγματικό OliveGemma με demo φίλτρα: PHOTO_RECOGNIZER=olivegemma scripts/demo_backend.sh
+# (θέλει τα βάρη στο models/olivegemma-3b· σε CPU, λεπτά ανά φωτογραφία)
+export PHOTO_RECOGNIZER="${PHOTO_RECOGNIZER:-none}" PHOTO_CONTENT_FILTER="${PHOTO_CONTENT_FILTER:-none}"
+export OLIVEGEMMA_TIMEOUT_S="${OLIVEGEMMA_TIMEOUT_S:-2400}"
 
 cd "$ROOT/backend"
 "$PY" -m alembic upgrade head >/dev/null

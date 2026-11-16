@@ -106,7 +106,9 @@ cd backend && python -m app.jobs.daily_card_drops                 # για χθ�
 | `STUDY_DURATION_DAYS` | 84 | ΠΡΟΣΧΕΔΙΟ· μετά: 403 `{"study_ended": true}` για την ομάδα παρέμβασης |
 | `POST_STUDY_ACCESS` | `false` | ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: πρόσβαση μετά το τέλος της μελέτης |
 | `APP_TIMEZONE` | `Europe/Athens` | «σήμερα», ημέρες, νυχτερινή εργασία |
-| `DEMO_MODE` | `false` | demo φίλτρα/αναγνώριση φωτογραφίας· `true` μόνο με `ENVIRONMENT=development`, αλλιώς η εφαρμογή δεν ξεκινά |
+| `DEMO_MODE` | `false` | συντόμευση «όλα demo» για τη φωτογραφία· `true` μόνο με `ENVIRONMENT=development`, αλλιώς η εφαρμογή δεν ξεκινά |
+| `PHOTO_RECOGNIZER` / `PHOTO_CONTENT_FILTER` | `none` / `none` | ανά component: `demo` \| `olivegemma` και `demo` \| `real` (το `real` δεν υπάρχει ακόμα → 503). Κάθε `demo` μόνο με `ENVIRONMENT=development`· το `DEMO_MODE` γεμίζει όσα είναι `none` |
+| `OLIVEGEMMA_DIR`, `_DTYPE`, `_THREADS`, `_TIMEOUT_S`, `_TOPK`, `_INGREDIENTS`, `_SHA256`, `_MAX_QUEUE`, `_PRELOAD`, `_LABEL_MAP_CSV` | βλ. `.env.example` | OliveGemma-3B από τοπικό φάκελο, εκτός σύνδεσης· βλ. «OliveGemma τοπικά» |
 | `CANDIDATE_PREFIX_MIN` / `CANDIDATE_MIN_RATIO` | 4 / 0.75 | ΠΡΟΣΧΕΔΙΟ: κατώφλια των `alternatives` (ποτέ αυτόματη επιλογή) |
 | `API_DOCS` | κενό | Swagger/OpenAPI εκτός production· απαγορεύεται σε production |
 | `FOODS_CSV`, `FOOD_ALIASES_CSV` | demo αρχεία | σε production η εφαρμογή δεν ξεκινά με demo τρόφιμα |
@@ -120,10 +122,38 @@ cd backend && python -m app.jobs.daily_card_drops                 # για χθ�
 | `PHOTO_REJECT_LIMIT` / `..._WINDOW_HOURS` / `PHOTO_SUSPENSION_HOURS` | 5 / 24 / 24 | ΠΡΟΣΧΕΔΙΟ |
 | `FORWARDED_ALLOW_IPS` | `172.28.0.0/24` | από πού εμπιστευόμαστε X-Forwarded-For (ο Nginx)· ποτέ `*` |
 
+## OliveGemma τοπικά (πραγματική αναγνώριση, CPU)
+
+Τα βάρη (`JamesZar/OliveGemma-3B`, 6,07 GB BF16, άδεια Gemma) μπαίνουν στο `models/olivegemma-3b/` (εκτός git· το
+`.gitignore` αγνοεί `models/` και `*.safetensors`). Το commit της έκδοσης γράφεται στο `models/olivegemma-3b/REVISION.txt`
+και μπαίνει στο audit ως `model_id` (`OliveGemma-3B@<rev>`). Το μοντέλο φορτώνεται **μόνο** από τον τοπικό φάκελο
+(`HF_HUB_OFFLINE=1`, `local_files_only=True`, `trust_remote_code=False`): καμία κλήση δικτύου.
+
+```bash
+ENVIRONMENT=development PHOTO_RECOGNIZER=olivegemma PHOTO_CONTENT_FILTER=demo uvicorn app.main:app
+PHOTO_RECOGNIZER=olivegemma scripts/demo_backend.sh      # ίδιο, μέσα στο demo
+```
+
+- Τα demo φίλτρα (NSFW που επιτρέπει τα πάντα, φίλτρο φωτεινότητας) μένουν γιατί τα πραγματικά δεν υπάρχουν ακόμα·
+  γι' αυτό επιτρέπεται μόνο σε `development`. Το audit γράφει `pipeline: "mixed"` και το `/admin/system-status`
+  δείχνει `photo_components: {nsfw: demo, food_gate: demo, recognizer: real}`.
+- Φόρτωση στο πρώτο αίτημα (ή στην εκκίνηση με `OLIVEGEMMA_PRELOAD=true`). Αν τα βάρη λείπουν ή το
+  `OLIVEGEMMA_SHA256` δεν ταιριάζει: `WARNING` στο log και η φωτογραφία δίνει `503 photo_unavailable`, όχι απόρριψη.
+- Ένα inference τη φορά. Με πάνω από `OLIVEGEMMA_MAX_QUEUE` σε αναμονή: `503 {"photo_busy": true}` (δεν μετρά στην
+  αναστολή). Timeout (`OLIVEGEMMA_TIMEOUT_S`): απόρριψη με λόγο `recognizer_timeout` μόνο στο audit.
+- **Χρόνος:** σε CPU χωρίς AVX-512 (Ryzen 7 3700U, BF16) μετρήθηκαν **~26 λεπτά ανά φωτογραφία** και 7,5 GB RSS
+  (16/11/2026, ίδιο top-1 με την T4 του Colab σε 6/6), πολύ πάνω από τον στόχο των λίγων δευτερολέπτων· ο πιλότος
+  τρέχει σε GPU του ΑΠΘ. Τοπικά βάλε `OLIVEGEMMA_TIMEOUT_S=2400`. Μέτρηση:
+  `scripts/bench_olivegemma.py --images <φάκελος> --out <csv> [--results olivegemma_results.csv]` (ελέγχει πρώτα τη
+  διαθέσιμη μνήμη· χρειάζονται ≥ 7 GiB).
+- Το `data/olivegemma_label_map.csv` είναι ΠΡΟΣΧΕΔΙΟ για τον demo πίνακα (ετικέτα → `food_id`)· διαβάζονται μόνο οι
+  στήλες `olivegemma_label` και `food_id`.
+
 ## Tests
 
 ```bash
-cd backend && python -m pytest -q tests                 # όλα (unit, api, integration)
+cd backend && python -m pytest -q tests -m "not model"  # όλα (unit, api, integration) χωρίς το πραγματικό μοντέλο
+python -m pytest -q tests -m model                      # φορτώνει το OliveGemma (λεπτά, ~7 GB)· skip χωρίς βάρη
 python -m pytest -q tests/integration/test_photo_ephemeral.py   # 1000 uploads, κανένα αρχείο (Κανόνας 7)
 ```
 

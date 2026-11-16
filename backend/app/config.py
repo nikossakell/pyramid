@@ -14,6 +14,7 @@ app/config.py — ρυθμίσεις της εφαρμογής (pydantic-setting
 
 ENVIRONMENT είναι ΥΠΟΧΡΕΩΤΙΚΟ (καμία προεπιλογή, Απόφαση 37 του 2026-11-12): χωρίς αυτό η εφαρμογή δεν ξεκινά.
 DEMO_MODE=true επιτρέπεται ΜΟΝΟ με ENVIRONMENT=development· σε κάθε άλλη τιμή η εφαρμογή δεν ξεκινά (Απόφαση 25).
+Το ίδιο ισχύει για κάθε demo component της φωτογραφίας (PHOTO_RECOGNIZER / PHOTO_CONTENT_FILTER, 2026-11-16).
 
 DATA_DIR: τοπικά <repo>/data· στο container (κώδικας στο /app) είναι το /data, όπου το docker-compose κάνει mount
 το ./data — το ίδιο σημείο που περιμένει και το ai_pipeline/presentation/lexicon.py. Σχετικά paths των CSV
@@ -99,8 +100,25 @@ class Settings(BaseSettings):
     PHOTO_REJECT_WINDOW_HOURS: int = Field(24, ge=1)               # ΠΡΟΣΧΕΔΙΟ: ... σε τόσες ώρες -> αναστολή
     PHOTO_SUSPENSION_HOURS: int = Field(24, ge=1)                  # ΠΡΟΣΧΕΔΙΟ: διάρκεια αναστολής φωτογραφίας
     PHOTO_CONFIDENT_MIN: float = Field(0.80, gt=0, le=1)           # ΠΡΟΣΧΕΔΙΟ: από εδώ «σίγουρο», αλλιώς «ίσως»
+    # Επιλογή component ανά κομμάτι (Αποφάσεις 1-3 του 2026-11-16). none = δεν υπάρχει (φωτογραφία 503).
+    # DEMO_MODE=true γεμίζει με demo όσα είναι none· ρητή τιμή υπερισχύει (π.χ. demo φίλτρα + πραγματικό OliveGemma).
+    # Κάθε demo επιτρέπεται ΜΟΝΟ με ENVIRONMENT=development (ίδιος φραγμός με το DEMO_MODE), αλλιώς η εφαρμογή δεν ξεκινά.
+    PHOTO_RECOGNIZER: Literal["none", "demo", "olivegemma"] = "none"
+    PHOTO_CONTENT_FILTER: Literal["none", "demo", "real"] = "none"   # real: NSFW + food gate #2· ΔΕΝ υπάρχουν ακόμα (503)
 
-    @field_validator("LLM_BASE_URL", "LLM_MODEL", mode="before")
+    # --- OliveGemma-3B (ai_pipeline/vision/olivegemma.py)· τοπικά βάρη, καμία κλήση δικτύου ---
+    OLIVEGEMMA_DIR: Path = ROOT / "models" / "olivegemma-3b"
+    OLIVEGEMMA_DTYPE: Literal["bfloat16", "float32"] = "bfloat16"
+    OLIVEGEMMA_THREADS: Optional[int] = Field(None, ge=1)         # torch.set_num_threads· κενό = προεπιλογή torch
+    OLIVEGEMMA_TIMEOUT_S: float = Field(600.0, gt=0)              # ΠΡΟΣΧΕΔΙΟ: τοπικά (CPU) μεγάλο· πιλότος σε GPU πολύ μικρότερο
+    OLIVEGEMMA_TOPK: int = Field(3, ge=1, le=5)                   # beams = υποψήφια (η 1η πρόταση + alternatives)
+    OLIVEGEMMA_INGREDIENTS: bool = False                          # ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ διαιτολόγου (S08στ): components
+    OLIVEGEMMA_SHA256: Optional[str] = None                       # του model.safetensors· διαφορά = δεν φορτώνεται (503)
+    OLIVEGEMMA_MAX_QUEUE: int = Field(2, ge=0)                    # ΠΡΟΣΧΕΔΙΟ: αιτήματα σε αναμονή· πάνω από αυτό 503 photo_busy
+    OLIVEGEMMA_PRELOAD: bool = False                              # true: φόρτωση στην εκκίνηση· false: στο πρώτο αίτημα
+    OLIVEGEMMA_LABEL_MAP_CSV: Path = Path("olivegemma_label_map.csv")   # ΠΡΟΣΧΕΔΙΟ demo (Απόφαση 5)
+
+    @field_validator("LLM_BASE_URL", "LLM_MODEL", "OLIVEGEMMA_SHA256", "OLIVEGEMMA_THREADS", mode="before")
     @classmethod
     def _empty_str(cls, v):
         return None if isinstance(v, str) and not v.strip() else v
@@ -138,6 +156,20 @@ class Settings(BaseSettings):
     def data_path(self, path: Path) -> Path:
         return path if path.is_absolute() else self.DATA_DIR / path
 
+    # Ενεργές τιμές ανά component: το DEMO_MODE είναι συντόμευση που γεμίζει μόνο όσα έμειναν none.
+    @property
+    def photo_recognizer(self) -> str:
+        return "demo" if self.PHOTO_RECOGNIZER == "none" and self.DEMO_MODE else self.PHOTO_RECOGNIZER
+
+    @property
+    def photo_content_filter(self) -> str:
+        return "demo" if self.PHOTO_CONTENT_FILTER == "none" and self.DEMO_MODE else self.PHOTO_CONTENT_FILTER
+
+    @property
+    def photo_demo_components(self) -> list[str]:
+        return [name for name, value in (("recognizer", self.photo_recognizer),
+                                         ("content_filter", self.photo_content_filter)) if value == "demo"]
+
     @model_validator(mode="after")
     def _production_guard(self) -> "Settings":
         if self.ENVIRONMENT != "production":
@@ -145,7 +177,9 @@ class Settings(BaseSettings):
         problems = []
         if self.DEMO_MODE:
             problems.append("DEMO_MODE must be false")
-        problems += [f"{name} shorter than {MIN_SECRET_LENGTH} characters" for name in SECRET_FIELDS
+        problems += [f"PHOTO_{c.upper()} must not be demo" for c in self.photo_demo_components
+                     if getattr(self, f"PHOTO_{c.upper()}") == "demo"]
+        problems +=[f"{name} shorter than {MIN_SECRET_LENGTH} characters" for name in SECRET_FIELDS
                      if len(getattr(self, name).get_secret_value()) < MIN_SECRET_LENGTH]
         if "*" in self.cors_origins:
             problems.append('CORS_ORIGINS must not contain "*"')
@@ -158,8 +192,13 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _demo_guard(self) -> "Settings":
         """DEMO_MODE μόνο με ENVIRONMENT=development. (Το production έχει το δικό του μήνυμα, πιο πάνω.)"""
-        if self.DEMO_MODE and self.ENVIRONMENT not in ("development", "production"):
+        if self.ENVIRONMENT in ("development", "production"):
+            return self
+        if self.DEMO_MODE:
             raise ValueError("refusing to start: DEMO_MODE=true is allowed only with ENVIRONMENT=development")
+        if self.photo_demo_components:
+            raise ValueError("refusing to start: demo photo components (PHOTO_RECOGNIZER / PHOTO_CONTENT_FILTER) "
+                             "are allowed only with ENVIRONMENT=development")
         return self
 
 

@@ -51,7 +51,12 @@ JWT (bearer). Δεν υπάρχει εγγραφή μέσω API: οι συμμε
   προτάσεις (προαιρετικό· δεν αλλάζει το γεύμα, δεν μετρά στο idempotency). Μόνο για την αξιολόγηση του μοντέλου.
 - `food_id: null`: το τρόφιμο δεν βρέθηκε στον πίνακα· το παιδί διαλέγει από τα `alternatives` ή ψάχνει.
 - `alternatives` (0–3): χωρίς σκορ. `confidence_word`: μόνο «σίγουρο» / «ίσως», ποτέ ποσοστό.
-- `portion` και `components`: πάντα `null` σήμερα (πεδία για το μέλλον· τα `components` είναι ανοιχτή απόφαση).
+- `portion`: πάντα `null` σήμερα (δεν υπάρχει μοντέλο μερίδας). `components`: `null`, εκτός αν
+  `OLIVEGEMMA_INGREDIENTS=true` (ΠΡΟΣΧΕΔΙΟ, ανοιχτή απόφαση διαιτολόγου): τότε έως 10 λέξεις στα αγγλικά, υλικά
+  συνταγής κατά το μοντέλο, ΟΧΙ επιβεβαιωμένα από τη φωτογραφία, ποτέ ποσότητες.
+- `503 {"photo_unavailable": true}`: δεν υπάρχει ρυθμισμένη διαδρομή φωτογραφίας ή το μοντέλο δεν φόρτωσε.
+  `503 {"photo_busy": true}`: η ουρά του μοντέλου είναι γεμάτη· ο client ξαναδοκιμάζει. Καμία από τις δύο δεν είναι
+  απόρριψη και δεν μετρά στην αναστολή.
 
 ### Idempotency του `/meals/confirm`
 
@@ -94,10 +99,10 @@ offline).
 | `backend/app/config.py:146` | Σε `ENVIRONMENT=production`: άρνηση εκκίνησης («DEMO_MODE must be false»). |
 | `backend/app/config.py:161` | Εκτός production: άρνηση εκκίνησης αν το `ENVIRONMENT` δεν είναι `development`. |
 | `backend/app/main.py:60` | Γραμμή `WARNING` στην εκκίνηση. |
-| `backend/app/services/photo_pipeline.py:162` | Η μόνη αλλαγή συμπεριφοράς: με `true` φορτώνονται τα demo φίλτρα (NSFW που επιτρέπει τα πάντα, φίλτρο φωτεινότητας) και ο demo recognizer (σταθερή πρόταση)· με `false` η φωτογραφία είναι «μη διαθέσιμη» (`503`, `photo_status: unavailable`). |
-| `backend/app/services/system_status.py:71` | `services.photo_pipeline`: `demo` αντί για `available`. |
-| `backend/app/services/system_status.py:92` | Πεδίο `demo_mode` του `/admin/system-status`. |
-| `backend/app/api/meals.py:130` | Audit `photo_processed`: `pipeline: "demo"` ή `"real"`. |
+| `backend/app/config.py` (`photo_recognizer`, `photo_content_filter`) | Η μόνη αλλαγή συμπεριφοράς: με `true` κάθε component που είναι `none` γίνεται `demo` (βλ. παρακάτω)· με `false` και χωρίς ρητά components η φωτογραφία είναι «μη διαθέσιμη» (`503`, `photo_status: unavailable`). |
+| `backend/app/services/system_status.py` | `services.photo_pipeline`: `demo` αν οποιοδήποτε component είναι demo· `photo_components` ανά component. |
+| `backend/app/services/system_status.py` | Πεδίο `demo_mode` του `/admin/system-status`. |
+| `backend/app/api/meals.py` | Audit `photo_processed`: `pipeline` = `demo` (όλα demo), `mixed` (κάποια demo) ή `real`. |
 | `scripts/seed_demo.py:61` | Αρνείται να γράψει δεδομένα επίδειξης χωρίς `DEMO_MODE=true` ή σε production. |
 | `scripts/demo_backend.sh:26` (`make demo`, `Makefile:72`) | Το ορίζει ρητά μαζί με `ENVIRONMENT=development`, σε προσωρινή βάση SQLite. |
 | `.env.example:37` | `DEMO_MODE=false`. |
@@ -107,11 +112,31 @@ offline).
 μόνο κείμενο προειδοποίησης στο Swagger. Το κείμενο (`/meals/text`), η αναζήτηση και τα demo τρόφιμα **δεν**
 εξαρτώνται από το `DEMO_MODE` (τα demo τρόφιμα τα σταματά ο έλεγχος `is_demo` σε production).
 
+## Components της φωτογραφίας (2026-11-16)
+
+| Ρύθμιση | Τιμές | Σημείωση |
+|---|---|---|
+| `PHOTO_CONTENT_FILTER` | `none` (προεπιλογή) \| `demo` \| `real` | NSFW + food gate #2. Το `real` δεν υπάρχει ακόμα (Βήματα 3.1b/3.1c): `WARNING` και 503. |
+| `PHOTO_RECOGNIZER` | `none` (προεπιλογή) \| `demo` \| `olivegemma` | `olivegemma`: `backend/ai_pipeline/vision/olivegemma.py`, τοπικά βάρη, εκτός σύνδεσης. |
+| `OLIVEGEMMA_DIR` | `models/olivegemma-3b` | φάκελος με `model.safetensors`, processor/tokenizer, `REVISION.txt` |
+| `OLIVEGEMMA_DTYPE` | `bfloat16` \| `float32` | float32 θέλει ~12 GB μόνο για βάρη |
+| `OLIVEGEMMA_THREADS` | κενό | `torch.set_num_threads` |
+| `OLIVEGEMMA_TIMEOUT_S` | 600 (ΠΡΟΣΧΕΔΙΟ) | μετά: απόρριψη `recognizer_timeout` (μόνο στο audit) |
+| `OLIVEGEMMA_TOPK` | 3 | beams = η πρόταση + alternatives |
+| `OLIVEGEMMA_INGREDIENTS` | `false` | ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ: γεμίζει τα `components` |
+| `OLIVEGEMMA_SHA256` | κενό | του `model.safetensors`· διαφορά = δεν φορτώνεται (503) |
+| `OLIVEGEMMA_MAX_QUEUE` | 2 (ΠΡΟΣΧΕΔΙΟ) | αιτήματα σε αναμονή· παραπάνω → `503 photo_busy` |
+| `OLIVEGEMMA_PRELOAD` | `false` | `true`: φόρτωση στην εκκίνηση |
+| `OLIVEGEMMA_LABEL_MAP_CSV` | `olivegemma_label_map.csv` | ετικέτα → `food_id` (ΠΡΟΣΧΕΔΙΟ demo) |
+
+Κάθε `demo` επιτρέπεται **μόνο** με `ENVIRONMENT=development` (ίδιος φραγμός με το `DEMO_MODE`): αλλιώς η εφαρμογή δεν
+ξεκινά. `model_id` στο audit: `OliveGemma-3B@<REVISION.txt>`.
+
 ## Audit: τι κρατά για την αναγνώριση
 
 | Γεγονός | Κωδικός παιδιού | Περιεχόμενο |
 |---|---|---|
-| `photo_processed` | **όχι** | `analysis_id`, `stored_bytes: 0`, `model_id`, `model_labels` (έως 10 ετικέτες του μοντέλου, χωρίς σκορ), `resolved_food_ids` (στην ίδια σειρά, `null` όπου δεν βρέθηκε τρόφιμο), `pipeline` (`demo` / `real`), `shown` (ό,τι είδε το παιδί: `food_id`, μερίδα, `food_id` των alternatives). |
+| `photo_processed` | **όχι** | `analysis_id`, `stored_bytes: 0`, `model_id`, `model_labels` (έως 10 ετικέτες του μοντέλου, χωρίς σκορ), `resolved_food_ids` (στην ίδια σειρά, `null` όπου δεν βρέθηκε τρόφιμο), `pipeline` (`demo` / `mixed` / `real`), `shown` (ό,τι είδε το παιδί: `food_id`, μερίδα, `food_id` των alternatives). |
 | `text_processed` | **όχι** | `analysis_id`, `model_id` (έκδοση extractor), `n_segments`, `resolved_food_ids` (ανά τμήμα, `null` όπου δεν βρέθηκε), `pipeline: "real"`, `shown`. Χωρίς `model_labels` (θα ήταν λέξεις του παιδιού). |
 | `suggestion_outcome` | ναι | Μόνο όταν το `/meals/confirm` έχει `analysis_id` και δημιουργεί νέο γεύμα: `analysis_id`, `meal_id`, `analysis_found`, `items: [{outcome, food_id, instead_of?}]`, `outcome ∈ accepted \| portion_changed \| alternative_chosen \| removed \| added`. |
 | `photo_rejected` | ναι | `reason`, `stored_bytes: 0` (χρειάζεται για την αναστολή φωτογραφίας). |

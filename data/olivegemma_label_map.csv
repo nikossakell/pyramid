@@ -1,1 +1,60 @@
 olivegemma_label,food_id,default_portion_g,confidence_floor,notes
+lentil soup,lentils,,,ΠΡΟΣΧΕΔΙΟ demo
+lentils,lentils,,,ΠΡΟΣΧΕΔΙΟ demo
+lentil stew,lentils,,,ΠΡΟΣΧΕΔΙΟ demo
+bean soup,bean_soup,,,ΠΡΟΣΧΕΔΙΟ demo
+white bean soup,bean_soup,,,ΠΡΟΣΧΕΔΙΟ demo
+large white bean soup,bean_soup,,,ΠΡΟΣΧΕΔΙΟ demo
+giant beans,bean_soup,,,ΠΡΟΣΧΕΔΙΟ demo
+chickpeas,chickpeas,,,ΠΡΟΣΧΕΔΙΟ demo
+chickpea soup,chickpeas,,,ΠΡΟΣΧΕΔΙΟ demo
+chickpea stew,chickpeas,,,ΠΡΟΣΧΕΔΙΟ demo
+milk,milk,,,ΠΡΟΣΧΕΔΙΟ demo
+glass of milk,milk,,,ΠΡΟΣΧΕΔΙΟ demo
+greek yogurt,yogurt,,,ΠΡΟΣΧΕΔΙΟ demo
+yogurt,yogurt,,,ΠΡΟΣΧΕΔΙΟ demo
+strained yogurt,yogurt,,,ΠΡΟΣΧΕΔΙΟ demo
+feta,feta,,,ΠΡΟΣΧΕΔΙΟ demo
+feta cheese,feta,,,ΠΡΟΣΧΕΔΙΟ demo
+whole wheat bread,wholegrain_bread,,,ΠΡΟΣΧΕΔΙΟ demo
+wholegrain bread,wholegrain_bread,,,ΠΡΟΣΧΕΔΙΟ demo
+whole grain bread,wholegrain_bread,,,ΠΡΟΣΧΕΔΙΟ demo
+oatmeal,oats,,,ΠΡΟΣΧΕΔΙΟ demo
+porridge,oats,,,ΠΡΟΣΧΕΔΙΟ demo
+oats,oats,,,ΠΡΟΣΧΕΔΙΟ demo
+spaghetti bolognese,spaghetti_meat_sauce,,,ΠΡΟΣΧΕΔΙΟ demo
+pasta bolognese,spaghetti_meat_sauce,,,ΠΡΟΣΧΕΔΙΟ demo
+spaghetti with meat sauce,spaghetti_meat_sauce,,,ΠΡΟΣΧΕΔΙΟ demo
+bolognese,spaghetti_meat_sauce,,,ΠΡΟΣΧΕΔΙΟ demo
+grilled chicken,chicken,,,ΠΡΟΣΧΕΔΙΟ demo
+roast chicken,chicken,,,ΠΡΟΣΧΕΔΙΟ demo
+chicken souvlaki,chicken,,,ΠΡΟΣΧΕΔΙΟ demo
+chicken breast,chicken,,,ΠΡΟΣΧΕΔΙΟ demo
+beef patty,beef_patty,,,ΠΡΟΣΧΕΔΙΟ demo
+burger patty,beef_patty,,,ΠΡΟΣΧΕΔΙΟ demo
+grilled meatballs,beef_patty,,,ΠΡΟΣΧΕΔΙΟ demo
+salmon,salmon,,,ΠΡΟΣΧΕΔΙΟ demo
+grilled salmon,salmon,,,ΠΡΟΣΧΕΔΙΟ demo
+salmon fillet,salmon,,,ΠΡΟΣΧΕΔΙΟ demo
+sardines,sardines,,,ΠΡΟΣΧΕΔΙΟ demo
+grilled sardines,sardines,,,ΠΡΟΣΧΕΔΙΟ demo
+egg,egg,,,ΠΡΟΣΧΕΔΙΟ demo
+fried egg,egg,,,ΠΡΟΣΧΕΔΙΟ demo
+boiled egg,egg,,,ΠΡΟΣΧΕΔΙΟ demo
+scrambled eggs,egg,,,ΠΡΟΣΧΕΔΙΟ demo
+omelette,egg,,,ΠΡΟΣΧΕΔΙΟ demo
+spinach,spinach,,,ΠΡΟΣΧΕΔΙΟ demo
+broccoli,broccoli,,,ΠΡΟΣΧΕΔΙΟ demo
+carrot,carrot,,,ΠΡΟΣΧΕΔΙΟ demo
+carrots,carrot,,,ΠΡΟΣΧΕΔΙΟ demo
+tomato,tomato,,,ΠΡΟΣΧΕΔΙΟ demo
+tomatoes,tomato,,,ΠΡΟΣΧΕΔΙΟ demo
+orange,orange,,,ΠΡΟΣΧΕΔΙΟ demo
+apple,apple,,,ΠΡΟΣΧΕΔΙΟ demo
+banana,banana,,,ΠΡΟΣΧΕΔΙΟ demo
+almonds,almonds,,,ΠΡΟΣΧΕΔΙΟ demo
+sausage,sausage,,,ΠΡΟΣΧΕΔΙΟ demo
+sausages,sausage,,,ΠΡΟΣΧΕΔΙΟ demo
+sausage and peppers,sausage,,,ΠΡΟΣΧΕΔΙΟ demo
+potato chips,crisps,,,ΠΡΟΣΧΕΔΙΟ demo
+crisps,crisps,,,ΠΡΟΣΧΕΔΙΟ demo

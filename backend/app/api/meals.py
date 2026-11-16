@@ -25,7 +25,7 @@ from app.schemas.meal import (AlternativeOut, ConfirmMeal, ConfirmOut, MealItemO
                               SuggestionsOut, TextRequest)
 from app.services import analysis_audit, meal_service
 from app.services.food_catalog import FoodCatalog
-from app.services.photo_pipeline import PhotoRejected
+from app.services.photo_pipeline import PhotoRejected, RecognizerBusy, RecognizerUnavailable
 from app.services.suggestion_service import (Suggestion, model_output_for_audit, photo_suspended, record_rejection,
                                              suggestions_from_photo, suggestions_from_segments, text_segments)
 
@@ -48,11 +48,13 @@ def _http(e: meal_service.MealError) -> HTTPException:
 def _suggestions(items: list[Suggestion], analysis_id: uuid.UUID) -> SuggestionsOut:
     return SuggestionsOut(analysis_id=analysis_id, suggestions=[SuggestionOut(
         food_id=s.food_id, name_el=s.name_el, confidence_word=s.confidence_word,
-        alternatives=[AlternativeOut(food_id=fid, name_el=name) for fid, name in s.alternatives]) for s in items])
+        alternatives=[AlternativeOut(food_id=fid, name_el=name) for fid, name in s.alternatives],
+        components=list(s.components) or None) for s in items])
 
 
 REJECTED = {"rejected": True}                  # ΙΔΙΟ σώμα για κάθε λόγο απόρριψης (R4)
 PHOTO_UNAVAILABLE = {"photo_unavailable": True}
+PHOTO_BUSY = {"photo_busy": True}              # η ουρά του μοντέλου είναι γεμάτη· δοκίμασε ξανά (όχι απόρριψη)
 PHOTO_OPENAPI = {
     "requestBody": {"required": True, "description": "Raw JPEG (όχι multipart), ≤ MAX_PHOTO_BYTES, μεγαλύτερη πλευρά ≤ "
                                                       "PHOTO_MAX_EDGE_PX. Στο Swagger: «Try it out» και επιλογή αρχείου.",
@@ -63,8 +65,10 @@ PHOTO_RESPONSES = {
           "content": {"application/json": {"example": REJECTED}}},
     403: {"description": "Αναστολή φωτογραφίας για τον κωδικό (κείμενο και αναζήτηση μένουν)",
           "content": {"application/json": {"example": PHOTO_UNAVAILABLE}}},
-    503: {"description": "Η φωτογραφία δεν είναι ρυθμισμένη (χωρίς μοντέλα και DEMO_MODE=false)",
-          "content": {"application/json": {"example": PHOTO_UNAVAILABLE}}},
+    503: {"description": "Η φωτογραφία δεν είναι διαθέσιμη (χωρίς μοντέλα, ή το μοντέλο δεν φόρτωσε) ή η ουρά του "
+                         "μοντέλου είναι γεμάτη ({\"photo_busy\": true})· καμία από τις δύο δεν είναι απόρριψη",
+          "content": {"application/json": {"examples": {"unavailable": {"value": PHOTO_UNAVAILABLE},
+                                                        "busy": {"value": PHOTO_BUSY}}}}},
 }
 
 
@@ -111,6 +115,10 @@ async def photo(request: Request, participant: CurrentParticipant, db: DbDep, ca
             found = await run_in_threadpool(process)
         except PhotoRejected as e:
             reason = e.reason
+        except RecognizerUnavailable:                       # το μοντέλο δεν φόρτωσε: όπως «μη ρυθμισμένη», όχι απόρριψη
+            return JSONResponse(PHOTO_UNAVAILABLE, status_code=503)
+        except RecognizerBusy:                              # ουρά γεμάτη: όχι απόρριψη, δεν μετρά στην αναστολή
+            return JSONResponse(PHOTO_BUSY, status_code=503)
         except Exception:                                   # fail-closed
             reason = "error"
         finally:
@@ -127,7 +135,7 @@ async def photo(request: Request, participant: CurrentParticipant, db: DbDep, ca
     analysis_audit.record_analysis(db, "photo_processed", analysis_id, stored_bytes=0,
                                    model_id=pipeline.versions["recognizer"], model_labels=model_labels,
                                    resolved_food_ids=resolved_food_ids,
-                                   pipeline="demo" if settings.DEMO_MODE else "real",
+                                   pipeline=pipeline.kind,                     # demo | mixed | real (ανά component)
                                    shown=analysis_audit.shown(items))
     await run_in_threadpool(db.commit)
     return _suggestions(items, analysis_id)

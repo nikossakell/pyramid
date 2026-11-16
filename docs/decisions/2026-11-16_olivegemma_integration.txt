@@ -1,0 +1,195 @@
+ΑΠΟΦΑΣΕΙΣ: ΕΝΣΩΜΑΤΩΣΗ ΤΟΥ ΠΡΑΓΜΑΤΙΚΟΥ OLIVEGEMMA-3B ΣΤΟ BACKEND (τοπικά, CPU)
+Ημερομηνία: 16/11/2026
+Προηγούμενα: docs/decisions/olivegemma_initial_test.txt (δοκιμή 19/10, Αποφάσεις 1-6),
+             2026-11-10_backend.txt (Απόφαση 31), 2026-11-12_backend_gaps.txt (Αποφάσεις 25-29, 34)
+Μοντέλο: JamesZar/OliveGemma-3B (fine-tune του google/paligemma2-3b-pt-448, LoRA ενσωματωμένο, BF16, 6,07 GB),
+         άδεια Gemma Terms of Use, τοπικά στο models/olivegemma-3b/ (εκτός git), έκδοση στο REVISION.txt.
+Μηχάνημα ανάπτυξης: Fedora, AMD Ryzen 7 3700U (Zen+, 4C/8T, AVX2/F16C/FMA, ΧΩΡΙΣ AVX-512 ή εγγενές BF16), 13 GiB RAM,
+         χωρίς CUDA/ROCm. Python 3.14.8, torch 2.15.0 (CUDA build, τρέχει σε CPU), transformers 5.22.2.
+
+
+ΣΤΑΔΙΟ 0: ΕΛΕΓΧΟΣ
+
+Απόφαση 1: Καμία νέα εγκατάσταση. Το venv είχε ήδη torch 2.15.0 και transformers 5.22.2 (υποστηρίζει PaliGemma 2)· το
+  PaliGemmaForConditionalGeneration εισάγεται κανονικά. Δεν χρειάζεται venv Python 3.12 για τον σκοπό αυτό (υπάρχει
+  wheel του torch για 3.14)· η ανοιχτή απόφαση «3.12 σε venv και Docker» μένει ξεχωριστό θέμα. Το CUDA build του torch
+  δουλεύει σε CPU· η αλλαγή σε CPU wheel θα γλίτωνε μόνο δίσκο (~4 GB), όχι χρόνο, και δεν έγινε.
+  Σημείωση transformers 5: το torch_dtype της κάρτας λέγεται dtype.
+
+Απόφαση 2: Τα data/olivegemma_label_map.csv και data/food_aliases.csv υπήρχαν μόνο με κεφαλίδα. Το
+  scripts/build_olivegemma_label_map.py είναι κενό stub. Το food_aliases.csv έχει άλλο σχήμα (alias,lang,food_id,
+  match_type,notes) από αυτό που φορτώνει ο κατάλογος (food_id,alias) και ΜΕΝΕΙ ΩΣ ΕΧΕΙ: αφορά τον πραγματικό πίνακα
+  τροφίμων, που δεν υπάρχει ακόμα.
+
+
+ΣΤΑΔΙΟ 1: ΕΠΙΛΟΓΗ COMPONENT ΑΝΑ ΚΟΜΜΑΤΙ
+
+Απόφαση 3: Δύο νέες ρυθμίσεις: PHOTO_CONTENT_FILTER = none | demo | real (NSFW + food gate #2) και
+  PHOTO_RECOGNIZER = none | demo | olivegemma, προεπιλογή none (φωτογραφία 503, όπως πριν χωρίς DEMO_MODE).
+  - Το DEMO_MODE μένει ως συντόμευση: με true, κάθε component που είναι none γίνεται demo. Ρητή τιμή υπερισχύει, ώστε
+    DEMO_MODE=true PHOTO_RECOGNIZER=olivegemma να τρέχει το πραγματικό μοντέλο με demo φίλτρα (και το
+    scripts/demo_backend.sh να δουλεύει αναλλοίωτο).
+  - Κάθε demo επιτρέπεται ΜΟΝΟ με ENVIRONMENT=development: σε test ή production η εφαρμογή δεν ξεκινά (ίδιος
+    φραγμός με το DEMO_MODE, Αποφάσεις 25 και 37 του 12/11· fail-closed, Απόφαση 27).
+  - real για το φίλτρο: δεν υπάρχει υλοποίηση (Βήματα 3.1b/3.1c). Δίνει None (φωτογραφία 503) και WARNING
+    photo_content_filter_not_implemented στην εκκίνηση. Προτιμήθηκε από το «άρνηση εκκίνησης», ώστε μια εγκατάσταση
+    production με σωστές τιμές να σηκώνει το υπόλοιπο API (κείμενο, αναζήτηση) και η φωτογραφία να είναι απλώς μη
+    διαθέσιμη· η συμπεριφορά του 503 είναι η ίδια που ίσχυε χωρίς μοντέλα.
+  Αιτιολόγηση: Μέχρι σήμερα το DEMO_MODE άλλαζε και τα τρία components μαζί· δεν γινόταν να δοκιμαστεί το
+  OliveGemma χωρίς πραγματικά NSFW / food gate.
+
+Απόφαση 4: Ορατότητα του μείγματος. Κάθε component έχει είδος demo | real | missing (demo = η κλάση δηλώνει
+  is_demo=True· οι demo κλάσεις του photo_pipeline.py το δηλώνουν, οτιδήποτε άλλο είναι real).
+  - Audit photo_processed: pipeline = demo (όλα demo) | mixed (κάποιο demo) | real (όλα πραγματικά). Το mixed είναι
+    νέα κλειστή τιμή· η εξαγωγή για την αξιολόγηση ξεχωρίζει έτσι τις αναλύσεις με πραγματικό μοντέλο αλλά demo
+    φίλτρα από τις αναλύσεις του πιλότου.
+  - GET /admin/system-status: νέο πεδίο photo_components {nsfw, food_gate, recognizer} με τις τρεις τιμές·
+    services.photo_pipeline = demo αν ΟΠΟΙΟΔΗΠΟΤΕ component είναι demo (πριν: αν DEMO_MODE). Το demo_mode μένει.
+  - Log εκκίνησης (pyramid.startup): γραμμή INFO photo_pipeline με τα τρία είδη και available· WARNING
+    photo_demo_components όταν υπάρχει demo component χωρίς DEMO_MODE (το demo_mode_enabled μένει όπως ήταν).
+  - PhotoPipeline.available: και τα τρία ρυθμισμένα ΚΑΙ recognizer.ready (ένα πραγματικό μοντέλο που απέτυχε να
+    φορτώσει κάνει τη φωτογραφία «μη διαθέσιμη»: /me photo_status=unavailable, /meals/photo 503).
+  Το test του system-status (test_cards_admin.py) προσαρμόστηκε στο νέο σύνολο κλειδιών (Απόφαση 2 του 12/11).
+
+
+ΣΤΑΔΙΟ 2: OLIVEGEMMARECOGNIZER (backend/ai_pipeline/vision/olivegemma.py, νέο)
+
+Απόφαση 5: Αρχεία και όρια. Νέα αρχεία ΜΟΝΟ στο ai_pipeline/vision/: types.py (RecognizedFood, RecognizerUnavailable,
+  RecognizerBusy — ώστε το ai_pipeline να μην εισάγει τίποτα από το app· το app/services/photo_pipeline.py τα
+  ξαναεξάγει με τα ίδια ονόματα, τα tests δεν άλλαξαν) και olivegemma.py. Τα stubs olivegemma_client.py και
+  content_filter.py δεν αγγίχτηκαν (R8). Το υπόλοιπο ai_pipeline/, rule_engine/, rag_db/ ανέγγιχτα.
+  Label map: data/olivegemma_label_map.csv ΠΡΟΣΧΕΔΙΟ για τον demo πίνακα (24 τρόφιμα), με ετικέτες από τη δοκιμή
+  της 19/10 και συνηθισμένες παραλλαγές, notes="ΠΡΟΣΧΕΔΙΟ demo". Διαβάζονται ΜΟΝΟ οι στήλες olivegemma_label και
+  food_id· οι default_portion_g και confidence_floor ΔΕΝ διαβάζονται. Το default_portion_g συγκρούεται με το D3 (τη
+  μερίδα τη διαλέγει το παιδί· καμία πρόταση μερίδας) και προτείνεται η αφαίρεσή του όταν έρθει ο πραγματικός πίνακας·
+  το confidence_floor δεν έχει νόημα με τον κανόνα της Απόφασης 6 (κανένα σκορ). Άγνωστο food_id ή ίδια ετικέτα σε
+  δύο τρόφιμα: σφάλμα δεδομένων, η εφαρμογή δεν ξεκινά.
+
+Απόφαση 6 (ΠΡΟΣΧΕΔΙΟ): Κανόνας «σίγουρο / ίσως» χωρίς σκορ. Το μοντέλο δίνει k ετικέτες (beam search, k = OLIVEGEMMA_TOPK
+  = 3). Κάθε ετικέτα -> label map -> food_id (όσες δεν αντιστοιχίζονται μένουν χωρίς food_id).
+  - Πρόταση: η 1η ετικέτα. Αν αντιστοιχίζεται: name_el του πίνακα (ο resolver τη βρίσκει exact). Αν όχι: food_id null,
+    name_el null, και το suggestion_service δείχνει την αγγλική ετικέτα (όπως ήδη για κάθε μη αντιστοιχισμένη
+    αναγνώριση, Απόφαση 7 του 12/11) με alternatives από τον resolver.
+  - alternatives: τα food_id των επόμενων ετικετών που αντιστοιχίζονται, διαφορετικά από την πρόταση, χωρίς διπλά
+    (Απόφαση 5γ της 19/10: «cheeseburger | burger | hamburger» γίνονται ένα). Μη αντιστοιχισμένες ετικέτες δεν
+    γίνονται alternatives (θα ήταν αγγλικά ονόματα χωρίς food_id).
+  - «σίγουρο» μόνο αν η 1η αντιστοιχίστηκε ΚΑΙ η 2η είναι: ανύπαρκτη, ή μη αντιστοιχισμένη, ή το ίδιο τρόφιμο, ή
+    τρόφιμο της ίδιας ομάδας (food_group). Αλλιώς «ίσως». Μη αντιστοιχισμένη 2η θεωρείται «δεν αποδεικνύει διαφορά»
+    (αν θεωρηθεί διαφορά, σχεδόν όλα θα ήταν «ίσως» με τον σημερινό μικρό πίνακα)· ανοιχτό σημείο για τον πραγματικό
+    πίνακα.
+  - Υλοποίηση: το RecognizedFood.confidence παίρνει μία από δύο σταθερές, SURE=1.0 ή MAYBE=0.0, ώστε η σύγκριση με το
+    PHOTO_CONFIDENT_MIN (που είναι > 0) να δίνει πάντα το αποτέλεσμα του κανόνα. Κανένα σκορ του μοντέλου δεν
+    υπολογίζεται ούτε αποθηκεύεται· η επιβεβαίωση από το παιδί μένει υποχρεωτική (Απόφαση 3 της 19/10).
+
+Απόφαση 7: Ιδιωτικότητα της εκτέλεσης. HF_HUB_OFFLINE=1, TRANSFORMERS_OFFLINE=1, HF_HUB_DISABLE_TELEMETRY=1 πριν το
+  import· from_pretrained με local_files_only=True, trust_remote_code=False. Είσοδος μόνο το JPEG του pipeline
+  (prepare: ≤ 448 px, νέο JPEG χωρίς EXIF), PIL Image στη RAM. Μετά από κάθε generate: del inputs/out, gc.collect()·
+  η εικόνα κλείνει και διαγράφεται. Καμία εγγραφή σε δίσκο, καμία cache εικόνας. Στο log μόνο χρόνος φόρτωσης, RSS,
+  dtype, threads, model_id — ποτέ περιεχόμενο ή ετικέτες.
+
+Απόφαση 8: Ακεραιότητα και έκδοση. Αν οριστεί OLIVEGEMMA_SHA256, ελέγχεται το model.safetensors πριν τη φόρτωση·
+  διαφορά (ή βάρη που λείπουν) = ο recognizer σημειώνεται failed (ready=False), WARNING olivegemma_load_failed,
+  και κάθε αίτημα δίνει 503 photo_unavailable (όχι 422: δεν μετρά στην αναστολή) μέχρι επανεκκίνηση.
+  model_id στο audit = "OliveGemma-3B@<REVISION.txt>" ("unknown" αν λείπει το αρχείο).
+
+Απόφαση 9: Φόρτωση μία φορά, lazy στο πρώτο αίτημα (OLIVEGEMMA_PRELOAD=false) ή στην εκκίνηση (true). Σε CPU, χωρίς
+  device_map / accelerate. OLIVEGEMMA_THREADS -> torch.set_num_threads. Με lazy φόρτωση, το πρώτο αίτημα περιλαμβάνει
+  τον χρόνο φόρτωσης μέσα στο timeout· τοπικά αρκεί το 600 s, στον πιλότο προτιμάται PRELOAD=true.
+
+Απόφαση 10 (ΠΡΟΣΧΕΔΙΟ): Ταυτόχρονα αιτήματα. Ένα inference τη φορά (κλείδωμα). Αιτήματα που εκκρεμούν = 1 που τρέχει +
+  έως OLIVEGEMMA_MAX_QUEUE (2) που περιμένουν· επόμενο αίτημα -> RecognizerBusy -> 503 {"photo_busy": true}, χωρίς
+  audit photo_rejected (δεν μετρά στην αναστολή). Το PWA σήμερα χειρίζεται κάθε 503 ως «μη διαθέσιμη»· αν χρειαστεί
+  διαφορετικό κείμενο για το busy, είναι αλλαγή frontend (εκτός σκοπού).
+
+Απόφαση 11: Timeout = απόρριψη. Το inference τρέχει σε νήμα· ο καλών περιμένει έως OLIVEGEMMA_TIMEOUT_S και μετά
+  σηκώνει TimeoutError, που το PhotoPipeline κάνει PhotoRejected("recognizer_timeout") (ίδιο 422 προς το παιδί, λόγος
+  μόνο στο audit, Απόφαση 27 του 12/11). Κάθε άλλη exception του recognizer -> recognizer_error, όπως πριν.
+  ΓΝΩΣΤΟΣ ΠΕΡΙΟΡΙΣΜΟΣ (τοπικά): ένα νήμα torch δεν διακόπτεται. Μετά το timeout η εκτέλεση συνεχίζει μέχρι να
+  τελειώσει και κρατά το κλείδωμα· τα επόμενα αιτήματα παίρνουν photo_busy. Αίτημα που περίμενε στην ουρά και έληξε
+  δεν εκτελείται όταν έρθει η σειρά του (σημαία cancelled). Βλ. ανοιχτές αποφάσεις: για τον πιλότο, inference σε
+  ξεχωριστή διεργασία που τερματίζεται.
+
+Απόφαση 12: likely_ingredients ΜΟΝΟ με OLIVEGEMMA_INGREDIENTS=true (προεπιλογή false, ανοιχτή απόφαση διαιτολόγου,
+  S08στ). Τότε γίνεται δεύτερη ερώτηση (greedy) και γεμίζει το RecognizedFood.components -> Suggestion.components ->
+  SuggestionOut.components (έως 10 λέξεις, αγγλικά, ΠΡΟΣΧΕΔΙΟ). Το schema άλλαξε από «πάντα null» σε
+  Optional[list[str]]: null όταν δεν υπάρχουν. Κατά την κάρτα του μοντέλου είναι ΥΛΙΚΑ ΣΥΝΤΑΓΗΣ (typical-recipe
+  priors), ΟΧΙ επιβεβαιωμένα από τη φωτογραφία, και όχι για αλλεργιογόνα. Οι φράσεις-πλαίσιο της κάρτας («Visible-
+  typical ingredients:», «Commonly-present but not visually confirmable:») αφαιρούνται· κάθε τμήμα με ψηφίο
+  απορρίπτεται (R1) και στη μονάδα και ξανά στο suggestion_service. ΟΧΙ visible_ingredients / visual_evidence.
+  Στο audit δεν γράφονται τα components (θα ήταν νέα απόφαση, όπως τα alternatives — Απόφαση 29 του 12/11).
+
+Απόφαση 13: Παράμετροι beam από την κάρτα του μοντέλου, όχι από το notebook. Το notebooks/03_olivegemma_colab_test.ipynb
+  του repo έχει 2 κελιά χωρίς τον κώδικα generate· κρατήθηκαν οι τιμές της κάρτας (prompt "<image>answer en
+  {question}\n", do_sample=False, max_new_tokens=64, num_beams = num_return_sequences = k).
+
+
+ΣΤΑΔΙΟ 3: TESTS, BENCHMARK, DEMO
+
+Απόφαση 14: Tests.
+  - tests/unit/test_olivegemma.py (22): ψεύτικο backend χωρίς βάρη. Beams -> αντιστοίχιση -> διπλά -> alternatives,
+    κανόνας «σίγουρο / ίσως», timeout -> απόρριψη και κλείδωμα, ουρά -> busy, ένα inference τη φορά, sha256 λάθος /
+    σωστό, βάρη που λείπουν, κανένα σκορ ή ψηφίο στην έξοδο, label map (στήλες, άγνωστο food_id, σύγκρουση), και ότι
+    το label map του repo αναφέρεται μόνο σε food_id του demo πίνακα.
+  - tests/api/test_photo_components.py (17): ρυθμίσεις ανά component, φραγμός development (test και production),
+    DEMO_MODE ως συντόμευση, olivegemma χωρίς βάρη (503, όχι σφάλμα εκκίνησης), preload που αποτυγχάνει, label map
+    που σταματά την εκκίνηση, kind demo | mixed | real, 503 unavailable / busy χωρίς photo_rejected, timeout ως
+    απόρριψη, components στην απάντηση μόνο όταν δίνονται και χωρίς ψηφία, system-status με photo_components.
+  - tests/integration/test_olivegemma_model.py (marker model, και slow): φορτώνει το πραγματικό μοντέλο αν υπάρχουν
+    βάρη στο OLIVEGEMMA_DIR, αλλιώς skip με μήνυμα. Νέος marker model στο pyproject.toml. Η προεπιλεγμένη εντολή του
+    README τρέχει με -m "not model" (λεπτά και ~7 GB μνήμης).
+  Καμία αποτυχία, κανένα skip/xfail/χαλάρωση. Μία αλλαγή σε υπάρχον test: το σύνολο κλειδιών του system-status
+  (Απόφαση 4). Αποτέλεσμα: βλ. «Αποτελέσματα».
+
+Απόφαση 15: scripts/bench_olivegemma.py. Διαβάζει τις εικόνες από όπου είναι (δεν αντιγράφονται στο repo), τις περνά
+  από το ίδιο prepare() (≤ 448 px, χωρίς EXIF), τρέχει dish_name με beam search, γράφει CSV (εικόνα, top-3, food_id,
+  σίγουρο/ίσως, δευτερόλεπτα, μέγιστο RSS) και, με το olivegemma_results.csv της 19/10, ποσοστό ίδιων top-1 με το
+  Colab. Πριν τη φόρτωση τυπώνει το MemAvailable και σταματά αν < 7 GiB (--force για παράκαμψη). Σκοπός ΜΟΝΟ η
+  ταύτιση CPU ↔ Colab και η μέτρηση χρόνου / μνήμης, όχι ακρίβεια: οι 72 εικόνες του Food-101 δεν υπάρχουν τοπικά,
+  μόνο οι 6 δικές μας (~/Desktop/msc/thesis/Phase3/demo_photos/).
+
+
+ΑΠΟΤΕΛΕΣΜΑΤΑ (16/11/2026)
+
+Tests (backend, -m "not postgres and not model"): 598 passed, 0 failed, 11 deselected (10 postgres + 1 model).
+  Το test με marker model (πραγματικό μοντέλο) ΔΕΝ εκτελέστηκε σε αυτή τη φάση: με ~25 λεπτά ανά inference σε αυτή
+  τη CPU θα διπλασίαζε τον χρόνο του benchmark· η ίδια διαδρομή (prepare -> recognize με πραγματικά βάρη) καλύφθηκε
+  από το benchmark.
+
+Benchmark (scripts/bench_olivegemma.py, 6 δικές μας φωτογραφίες, BF16, CPU Ryzen 7 3700U, 4 νήματα torch, top-k 3):
+  φόρτωση 11 s (mmap των safetensors)· max RSS 7,45 GB κατά το inference· MemAvailable πριν: 9,5 GiB.
+  Χρόνος ανά εικόνα (dish_name, beam search k=3): 1485-1669 s, μέσος 1544 s (~26 λεπτά). Δηλαδή ~600 φορές πιο
+  αργά από τα 2,6 s της T4 (19/10): η CPU δεν έχει εγγενές BF16, ο πολλαπλασιασμός γίνεται με μετατροπές.
+  Ταύτιση με Colab: 6/6 ίδιο top-1 (pastitsio, pastitsio, lentil soup, giant beans, chicken souvlaki, sausage and
+  peppers). Τα top-2/top-3 ταυτίζονται στις 5 από 6· στην own_01 η 3η θέση διαφέρει (pastitsa αντί pastitsios).
+  Συμπέρασμα: η CPU/BF16 εκτέλεση δίνει τα ίδια αποτελέσματα με την GPU· η ενσωμάτωση λειτουργεί. Ο χρόνος είναι
+  απαγορευτικός για χρήση, όπως αναμενόταν (στόχος: μόνο ενσωμάτωση και μέτρηση).
+  Μέσω label map (demo): own_03 -> lentils «σίγουρο», own_04 -> bean_soup «σίγουρο», own_05 -> chicken «σίγουρο»,
+  own_06 -> sausage «σίγουρο»· own_01/own_02 (pastitsio) χωρίς τρόφιμο στον demo πίνακα -> food_id null, «ίσως».
+  float32 δεν μετρήθηκε: ~12 GB βάρη δεν χωρούν στα 13 GiB. Κβαντοποίηση δεν δοκιμάστηκε (χωρίς έγκριση).
+  CSV αποτελεσμάτων: εκτός repo (scratchpad της συνεδρίας)· οι εικόνες δεν αντιγράφηκαν.
+
+Συνέπεια για τις ρυθμίσεις: η προεπιλογή OLIVEGEMMA_TIMEOUT_S=600 είναι ΜΙΚΡΟΤΕΡΗ από τον τοπικό χρόνο (~1550 s).
+  Τοπικά με το πραγματικό pipeline χρειάζεται OLIVEGEMMA_TIMEOUT_S=2400 (γράφτηκε στο .env.example και στο README)·
+  η προεπιλογή μένει 600 ως ΠΡΟΣΧΕΔΙΟ για GPU.
+
+
+ΑΝΟΙΧΤΕΣ ΑΠΟΦΑΣΕΙΣ
+- Για τον πιλότο: inference σε ξεχωριστή διεργασία που τερματίζεται στο timeout (το νήμα torch δεν διακόπτεται,
+  Απόφαση 11)· και PRELOAD=true ώστε το πρώτο παιδί να μην περιμένει τη φόρτωση.
+- OLIVEGEMMA_TIMEOUT_S (600 τοπικά) και OLIVEGEMMA_MAX_QUEUE (2): ΠΡΟΣΧΕΔΙΟ, να οριστούν με μέτρηση σε GPU του ΑΠΘ.
+  Το S07 του PWA έχει δικό του timeout 25 s (analyzePhoto)· αν το μοντέλο σε GPU χρειάζεται περισσότερο, το timeout
+  του frontend πρέπει να γίνει ρύθμιση (μόνο πρόταση, εκτός σκοπού εδώ).
+- Κανόνας «σίγουρο» (Απόφαση 6): επανέλεγχος με τον πραγματικό πίνακα· ιδίως πώς μετρά μια 2η ετικέτα που δεν
+  αντιστοιχίζεται.
+- Μη αντιστοιχισμένη 1η ετικέτα δείχνεται στο παιδί στα αγγλικά (συμπεριφορά της Απόφασης 7 του 12/11). Με πλήρες
+  label map για τον πραγματικό πίνακα θα είναι σπάνιο· αλλιώς χρειάζεται απόφαση για ουδέτερο κείμενο («Δεν το
+  βρήκα»).
+- components (Απόφαση 12): ενεργοποίηση, γλώσσα (η έξοδος είναι αγγλική), σύγκρουση με «σύνθετο πιάτο σε μία γραμμή»
+  και με τη μία ομάδα ανά τρόφιμο· απόφαση διαιτολόγου.
+- Label map για τον πραγματικό πίνακα: το scripts/build_olivegemma_label_map.py μένει stub· το default_portion_g να
+  αφαιρεθεί (D3), το confidence_floor δεν χρησιμοποιείται. Το food_aliases.csv θέλει loader για το σχήμα του.
+- NSFW και food gate #2 (PHOTO_CONTENT_FILTER=real) δεν υπάρχουν: μέχρι τότε το πραγματικό OliveGemma τρέχει μόνο σε
+  development με demo φίλτρα.
+- Το pipeline του audit έχει πλέον τρεις τιμές (demo | mixed | real): η εξαγωγή για την αξιολόγηση να φιλτράρει real.
+- Python 3.12 σε venv και Docker (ανοιχτή από 10/11): δεν επηρεάζει αυτή την εργασία.
+- Κβαντοποίηση / float32 / fine-tuning: εκτός σκοπού· δεν δοκιμάστηκαν.

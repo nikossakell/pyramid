@@ -78,6 +78,7 @@ asyncio_mode = "auto"
 markers = [
   "slow: needs a model loaded",
   "gpu: needs a GPU",
+  "model: loads real model weights (OliveGemma); skipped automatically when OLIVEGEMMA_DIR has no weights",
   "postgres: needs a real, empty PostgreSQL database in PG_TEST_URL (skipped without it)",
 ]
 

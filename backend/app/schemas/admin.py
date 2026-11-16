@@ -104,8 +104,19 @@ class ServicesOut(BaseModel):
     last_card_job: Optional[LastJobOut]       # null: η εργασία δεν έχει τρέξει ποτέ
 
 
+ComponentKind = Literal["demo", "real", "missing"]
+
+
+class PhotoComponentsOut(BaseModel):
+    """Ποιο component της φωτογραφίας είναι demo, πραγματικό ή λείπει (PHOTO_CONTENT_FILTER / PHOTO_RECOGNIZER)."""
+    nsfw: ComponentKind
+    food_gate: ComponentKind
+    recognizer: ComponentKind
+
+
 class SystemStatusOut(BaseModel):
     """Κατάσταση συστήματος (A03). Κανένα δεδομένο συμμετέχοντα, κανένα URL ή μυστικό."""
-    demo_mode: bool                 # DEMO_MODE=true: demo φίλτρα/αναγνώριση (μόνο με ρητό ENVIRONMENT=development)
+    demo_mode: bool                 # DEMO_MODE=true: όλα demo (μόνο με ENVIRONMENT=development)
+    photo_components: PhotoComponentsOut
     versions: VersionsOut
     services: ServicesOut

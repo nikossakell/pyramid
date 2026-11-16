@@ -91,3 +91,12 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+
+# μοντέλα (ποτέ στο git: μέγεθος, άδεια Gemma)
+models/
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.onnx

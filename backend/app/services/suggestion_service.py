@@ -47,6 +47,7 @@ class Suggestion:
     name_el: str
     confidence_word: str
     alternatives: tuple[tuple[str, str], ...] = ()      # (food_id, name_el), ποτέ το ίδιο το τρόφιμο, ποτέ σκορ
+    components: tuple[str, ...] = ()                    # υλικά κατά το μοντέλο (μόνο OLIVEGEMMA_INGREDIENTS=true)· λέξεις
 
 
 def _alternatives(catalog: FoodCatalog, own_id: Optional[str], names: tuple[str, ...] = (),
@@ -136,13 +137,14 @@ def suggestions_from_photo(catalog: FoodCatalog, found: list[RecognizedFood], co
     for f in sorted(found, key=lambda x: -x.confidence):
         r = catalog.resolver.resolve(f.name_el) if f.name_el else None
         word = SURE if f.confidence >= confident_min and r is not None and r.method != "fuzzy" else MAYBE
+        components = tuple(c for c in f.components if not any(ch.isdigit() for ch in c))   # R1: ποτέ ποσότητα
         if r is None:
             out.append(Suggestion(None, (f.name_el or f.label_en)[:MAX_UNRESOLVED_NAME_CHARS], MAYBE,
-                                  _alternatives(catalog, None, f.alternatives, candidates_for=f.name_el)))
+                                  _alternatives(catalog, None, f.alternatives, candidates_for=f.name_el), components))
         elif r.food_id not in seen:
             seen.add(r.food_id)
             out.append(Suggestion(r.food_id, catalog.foods[r.food_id].name_el, word,
-                                  _alternatives(catalog, r.food_id, f.alternatives)))
+                                  _alternatives(catalog, r.food_id, f.alternatives), components))
     return out[:MAX_ITEMS_PER_MEAL]
 
 

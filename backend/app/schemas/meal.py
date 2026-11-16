@@ -85,8 +85,9 @@ class SuggestionOut(BaseModel):
     confidence_word: Literal["σίγουρο", "ίσως"]  # ποτέ αριθμός (R1)
     alternatives: list[AlternativeOut] = Field(default_factory=list, max_length=3)   # χωρίς σκορ
     portion: Optional[Portion] = None            # πάντα null σήμερα: δεν υπάρχει μοντέλο μερίδας (πεδίο για το μέλλον)
-    # Πάντα null. ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ (διαιτολόγος): υλικά σύνθετου πιάτου. ΜΟΝΟ schema· καμία υλοποίηση.
-    components: None = None
+    # Υλικά σύνθετου πιάτου κατά το μοντέλο (ΑΝΟΙΧΤΗ ΑΠΟΦΑΣΗ διαιτολόγου). null εκτός αν OLIVEGEMMA_INGREDIENTS=true·
+    # τότε λέξεις (αγγλικά, ΠΡΟΣΧΕΔΙΟ) χωρίς ποσότητες: υλικά συνταγής, ΟΧΙ επιβεβαιωμένα από τη φωτογραφία.
+    components: Optional[list[str]] = Field(None, max_length=10)
 
 
 class SuggestionsOut(BaseModel):

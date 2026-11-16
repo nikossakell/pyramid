@@ -1,7 +1,8 @@
 """
 app/services/system_status.py — κατάσταση συστήματος για την κονσόλα του ερευνητή (A03). ΚΑΝΕΝΑ δεδομένο συμμετέχοντα.
 
-demo_mode: η ρύθμιση DEMO_MODE (demo φίλτρα / αναγνώριση). Μόνο εδώ και στο log εκκίνησης· τίποτα προς το παιδί.
+demo_mode: η ρύθμιση DEMO_MODE (όλα demo). photo_components: demo | real | missing ανά component (nsfw, food_gate,
+          recognizer), αφού από 16/11 επιλέγονται χωριστά. Μόνο εδώ και στο log εκκίνησης· τίποτα προς το παιδί.
 versions: sha256 των CSV (data_versions του engine), sha256 του rag_sources.csv (μόνο ανάγνωση), εκδόσεις presenter /
           prompt, αν ο πίνακας τροφίμων έχει demo γραμμές, ονόματα μοντέλων από τις ρυθμίσεις (ή null).
 services: db (SELECT 1), llm (GET {LLM_BASE_URL}/models με LLM_PROBE_TIMEOUT_SECONDS· "not_configured" αν λείπουν οι
@@ -68,7 +69,7 @@ def _llm_status(settings: Settings, probe: LlmProbe) -> str:
 def _photo_status(settings: Settings, pipeline: PhotoPipeline) -> str:
     if not pipeline.available:
         return "unavailable"
-    return "demo" if settings.DEMO_MODE else "available"
+    return "demo" if pipeline.has_demo else "available"      # demo αν ΟΠΟΙΟΔΗΠΟΤΕ component είναι demo
 
 
 def _sha256_or_none(path: Path) -> Optional[str]:
@@ -90,6 +91,7 @@ def system_status(db: Session, settings: Settings, catalog: FoodCatalog, pipelin
                                          "drops": run.count}
     return {
         "demo_mode": settings.DEMO_MODE,
+        "photo_components": dict(pipeline.components),      # demo | real | missing ανά component (2026-11-16)
         "versions": {
             "app": app_version,
             "data_versions": dict(catalog.versions),

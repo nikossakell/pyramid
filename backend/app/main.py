@@ -60,6 +60,10 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     if settings.DEMO_MODE:      # ορατό σε κάθε εκκίνηση· μόνο σταθερές τιμές, κανένα μυστικό
         logging.getLogger(STARTUP_LOGGER).warning(
             "demo_mode_enabled", extra={"fields": {"demo_mode": True, "environment": settings.ENVIRONMENT}})
+    elif settings.photo_demo_components:   # demo component χωρίς DEMO_MODE (π.χ. demo φίλτρα + πραγματικό OliveGemma)
+        logging.getLogger(STARTUP_LOGGER).warning(
+            "photo_demo_components", extra={"fields": {"components": settings.photo_demo_components,
+                                                       "environment": settings.ENVIRONMENT}})
     if settings.ENVIRONMENT == "production" and catalog.has_demo:
         raise StartupError("refusing to start in production: the food table contains demo rows (is_demo=true)")
     docs = settings.docs_enabled
@@ -75,7 +79,10 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     app.state.catalog = catalog
     app.state.references = load_reference_values(settings.DATA_DIR / "efsa_drv.csv")
     app.state.presenter = build_presenter(settings)
-    app.state.photo_pipeline = build_photo_pipeline(settings)
+    app.state.photo_pipeline = build_photo_pipeline(settings, catalog.foods)
+    logging.getLogger(STARTUP_LOGGER).info(          # ποιο component είναι demo / real / missing (A03 το δείχνει επίσης)
+        "photo_pipeline", extra={"fields": {**app.state.photo_pipeline.components,
+                                            "available": app.state.photo_pipeline.available}})
     app.state.text_extractor = DeterministicTextExtractor(catalog)
     app.state.llm_probe = http_llm_probe        # έλεγχος του LLM για το /admin/system-status (τα tests το αλλάζουν)
     app.state.login_limiter = LoginLimiter(settings.LOGIN_MAX_FAILURES, timedelta(minutes=settings.LOGIN_WINDOW_MINUTES))
