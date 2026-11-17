@@ -28,6 +28,8 @@ const saving = ref(false)
 
 const SIZES: { v: TextSize; label: string; px: number }[] = [{ v: 'normal', label: 'Κανονικό', px: 14 }, { v: 'large', label: 'Μεγάλο', px: 16 }, { v: 'xlarge', label: 'Πολύ μεγάλο', px: 18 }]
 const THEMES: { v: Theme; label: string }[] = [{ v: 'light', label: 'Φωτεινό' }, { v: 'dark', label: 'Σκοτεινό' }, { v: 'auto', label: 'Αυτόματο' }]
+const SECTIONS = [{ id: 'avatar', label: 'Avatar' }, { id: 'text', label: 'Μέγεθος κειμένου' }, { id: 'theme', label: 'Θέμα' },
+                  { id: 'motion', label: 'Κίνηση' }, { id: 'more', label: 'Περισσότερα' }]
 
 function openAvatar(): void { pick.value = me.avatarId; avatarOpen.value = true }
 async function saveAvatar(): Promise<void> {
@@ -54,12 +56,18 @@ me.load().catch(() => {})
   <div class="screen">
     <TopBar title="Προφίλ" back :avatar="false" back-to="/today" />
     <main class="screen__body body">
-      <div class="avatarrow">
+      <!-- expanded μόνο: λίστα ενοτήτων αριστερά (διάταξη ρυθμίσεων)· τα links πηγαίνουν στις ενότητες δεξιά -->
+      <nav class="setnav" aria-label="Ενότητες ρυθμίσεων">
+        <a v-for="s in SECTIONS" :key="s.id" :href="`#${s.id}`" class="setlink">{{ s.label }}</a>
+        <RouterLink to="/privacy" class="setlink">Απόρρητο &amp; AI</RouterLink>
+      </nav>
+      <div class="content">
+      <div id="avatar" class="avatarrow">
         <AvatarBadge :avatar-id="me.avatarId" :size="80" />
         <button type="button" class="outbtn" @click="openAvatar">Άλλαξε avatar</button>
       </div>
 
-      <fieldset class="fs">
+      <fieldset id="text" class="fs">
         <legend class="legend">Μέγεθος κειμένου</legend>
         <div class="seg" role="radiogroup" aria-label="Μέγεθος κειμένου">
           <button v-for="s in SIZES" :key="s.v" type="button" role="radio" class="segbtn" :class="{ 'segbtn--on': ui.prefs.textSize === s.v }" :aria-checked="ui.prefs.textSize === s.v"
@@ -67,7 +75,7 @@ me.load().catch(() => {})
         </div>
       </fieldset>
 
-      <fieldset class="fs">
+      <fieldset id="theme" class="fs">
         <legend class="legend">Θέμα</legend>
         <div class="seg" role="radiogroup" aria-label="Θέμα">
           <button v-for="t in THEMES" :key="t.v" type="button" role="radio" class="segbtn" :class="{ 'segbtn--on': ui.prefs.theme === t.v }" :aria-checked="ui.prefs.theme === t.v"
@@ -75,7 +83,7 @@ me.load().catch(() => {})
         </div>
       </fieldset>
 
-      <label class="switchrow">
+      <label id="motion" class="switchrow">
         <span class="txt"><span class="t1">Μείωση κίνησης</span><span class="t-caption muted">Λιγότερα κινούμενα εφέ</span></span>
         <span class="switch" :class="{ 'switch--on': ui.prefs.reduceMotion }">
           <input type="checkbox" role="switch" aria-label="Μείωση κίνησης" :checked="ui.prefs.reduceMotion" @change="ui.setPrefs({ reduceMotion: ($event.target as HTMLInputElement).checked })" />
@@ -83,11 +91,12 @@ me.load().catch(() => {})
         </span>
       </label>
 
-      <nav class="more" aria-label="Περισσότερα">
+      <nav id="more" class="more" aria-label="Περισσότερα">
         <RouterLink to="/privacy" class="row pressable"><span class="t1">Απόρρητο &amp; AI</span><Icon name="chevron" :size="18" /></RouterLink>
         <button type="button" class="row pressable" @click="leaveOpen = true"><span class="t1">Πώς σταματάω τη συμμετοχή</span><Icon name="chevron" :size="18" /></button>
         <button type="button" class="row pressable" @click="logout"><span class="t1">Έξοδος</span><Icon name="exit" :size="18" /></button>
       </nav>
+      </div>
     </main>
     <BottomNav active="none" />
 
@@ -101,6 +110,17 @@ me.load().catch(() => {})
 
 <style scoped>
 .body { gap: 16px; padding: 8px 16px 16px; }
+.setnav { display: none; }
+.content { display: contents; }
+/* expanded: διάταξη ρυθμίσεων, αριστερά λίστα ενοτήτων, δεξιά περιεχόμενο έως 720 px */
+@media (min-width: 1024px) {
+  .body { display: grid; grid-template-columns: 240px minmax(0, 720px); gap: 32px; align-items: start; padding-bottom: 40px; }
+  .setnav { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 16px; }
+  .setlink { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: calc(15px * var(--text-scale)); color: var(--color-text-muted); }
+  .setlink:hover { background: var(--color-surface); color: var(--color-text); }
+  .content { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .fs, .switchrow, .more, .avatarrow { scroll-margin-top: 16px; }
+}
 .avatarrow { display: flex; align-items: center; gap: 16px; }
 .outbtn { height: 44px; border-radius: 14px; border: 2px solid var(--color-ink); background: var(--color-bg); color: inherit; font-weight: 600; font-size: calc(15px * var(--text-scale)); padding: 0 16px; }
 .fs { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }

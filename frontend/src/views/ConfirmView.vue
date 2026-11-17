@@ -17,12 +17,14 @@ import { useLogStore } from '@/stores/log'
 import { useMealsStore } from '@/stores/meals'
 import { useQueueStore } from '@/stores/queue'
 import { useUiStore } from '@/stores/ui'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 
 const router = useRouter()
 const log = useLogStore()
 const meals = useMealsStore()
 const queue = useQueueStore()
 const ui = useUiStore()
+const { isExpanded } = useBreakpoint()
 
 const saving = ref(false)
 const pickerKey = ref<number | null>(null)
@@ -77,19 +79,35 @@ function setPortion(key: number, p: Portion): void { log.setPortion(key, p) }
   <div class="screen">
     <TopBar title="Επιβεβαίωση" back :avatar="false" back-to="/log" />
     <main class="screen__body body">
-      <h2 class="t-title">Βρήκα αυτά. Είναι σωστά;</h2>
-      <SlotPicker v-model="log.slot" />
+      <div class="list">
+        <h2 class="t-title">Βρήκα αυτά. Είναι σωστά;</h2>
+        <SlotPicker v-if="!isExpanded" v-model="log.slot" />
 
-      <FoodItemRow v-for="it in log.items" :key="it.key" :item="it" :source="log.source"
-                   @portion="setPortion(it.key, $event)" @remove="log.remove(it.key)" @restore="log.restore(it.key)"
-                   @alternative="log.chooseAlternative(it.key, $event)" @search="router.push({ name: 'search', query: { from: 'confirm', replace: String(it.key) } })"
-                   @ask-portion="pickerKey = it.key" />
+        <FoodItemRow v-for="it in log.items" :key="it.key" :item="it" :source="log.source"
+                     @portion="setPortion(it.key, $event)" @remove="log.remove(it.key)" @restore="log.restore(it.key)"
+                     @alternative="log.chooseAlternative(it.key, $event)" @search="router.push({ name: 'search', query: { from: 'confirm', replace: String(it.key) } })"
+                     @ask-portion="pickerKey = it.key" />
 
-      <button v-if="!log.isFull" type="button" class="add pressable" @click="router.push({ name: 'search', query: { from: 'confirm' } })">
-        <Icon name="plus" :size="20" />Πρόσθεσε κάτι που λείπει
-      </button>
+        <button v-if="!log.isFull && !isExpanded" type="button" class="add pressable" @click="router.push({ name: 'search', query: { from: 'confirm' } })">
+          <Icon name="plus" :size="20" />Πρόσθεσε κάτι που λείπει
+        </button>
+      </div>
+
+      <!-- expanded: sticky πάνελ δεξιά με γεύμα, «+ Πρόσθεσε», «Σωστό, αποθήκευσε» και το «τι λείπει» (ίδιο περιεχόμενο με το footer) -->
+      <aside v-if="isExpanded" class="side" aria-label="Αποθήκευση γεύματος">
+        <div class="field">
+          <span class="field__label">Γεύμα</span>
+          <SlotPicker v-model="log.slot" />
+        </div>
+        <button v-if="!log.isFull" type="button" class="add pressable" @click="router.push({ name: 'search', query: { from: 'confirm' } })">
+          <Icon name="plus" :size="20" />Πρόσθεσε κάτι που λείπει
+        </button>
+        <p v-if="hint" class="t-caption muted">{{ hint }}</p>
+        <AppButton :disabled="!log.canSave" :loading="saving" @click="save">Σωστό, αποθήκευσε</AppButton>
+        <AppButton variant="ghost" @click="cancel">Ακύρωση</AppButton>
+      </aside>
     </main>
-    <footer class="screen__footer">
+    <footer v-if="!isExpanded" class="screen__footer">
       <p v-if="hint" class="t-caption muted">{{ hint }}</p>
       <AppButton :disabled="!log.canSave" :loading="saving" @click="save">Σωστό, αποθήκευσε</AppButton>
       <AppButton variant="ghost" @click="cancel">Ακύρωση</AppButton>
@@ -102,5 +120,12 @@ function setPortion(key: number, p: Portion): void { log.setPortion(key, p) }
 
 <style scoped>
 .body { gap: 12px; padding: 8px 16px 16px; }
+.list { display: contents; }
+/* expanded: αριστερά (8) οι γραμμές, δεξιά (4) sticky πάνελ */
+@media (min-width: 1024px) {
+  .body { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; align-items: start; padding-bottom: 40px; }
+  .list { display: flex; flex-direction: column; gap: 12px; grid-column: 1 / span 8; min-width: 0; }
+  .side { grid-column: 9 / span 4; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--color-line); border-radius: 20px; padding: 18px 16px; box-shadow: var(--shadow-card); background: var(--color-bg); }
+}
 .add { height: 52px; border-radius: 16px; border: 1.5px dashed var(--color-absent); background: var(--color-bg); color: inherit; font-weight: 600; font-size: calc(15px * var(--text-scale)); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 </style>

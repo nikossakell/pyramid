@@ -57,5 +57,25 @@ img, svg { display: block; }
 /* Μαύρη λωρίδα κατάστασης (offline, status) */
 .banner { background: var(--color-ink); color: var(--color-on-ink); font-size: calc(14px * var(--text-scale)); line-height: 1.43; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
 
-.pressable { transition: background-color var(--motion), transform var(--motion); }
+.pressable { transition: background-color var(--motion), transform var(--motion), filter var(--motion); }
 .pressable:active { transform: scale(0.98); }
+@media (hover: hover) { .pressable:hover { filter: brightness(0.96); } }
+
+/* ---------- Responsive κέλυφος (compact < 600 ΑΜΕΤΑΒΛΗΤΟ· medium 600–1023· expanded ≥ 1024). Βλ. tokens.css. ---------- */
+.app { flex: 1; display: flex; flex-direction: column; min-height: 100dvh; }
+.app__page { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* medium: μία στήλη στο κέντρο, 640 px· BottomNav και sheets μένουν. Η κεφαλίδα, το σώμα και το footer κάθε οθόνης
+   περιορίζονται σε πλάτος· το nav μένει πλήρες. */
+@media (min-width: 600px) and (max-width: 1023.98px) {
+  .screen > header, .screen > main, .screen > footer { width: 100%; max-width: var(--content-max-medium); margin-inline: auto; }
+}
+
+/* expanded: SideNav 240 px σταθερό αριστερά, περιεχόμενο έως 1200 px κεντραρισμένο. */
+@media (min-width: 1024px) {
+  .app--nav .app__page { margin-left: var(--sidenav-width); }
+  .screen { min-height: 100dvh; }
+  .screen > header, .screen > main, .screen > footer { width: 100%; max-width: var(--content-max-expanded); margin-inline: auto; }
+  .screen > main { padding-inline: 32px; }
+  .screen > footer { padding-inline: 32px; }
+}

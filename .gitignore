@@ -100,3 +100,6 @@ models/
 *.bin
 *.pt
 *.onnx
+
+# --- Responsive screenshots (frontend, Στάδιο 4) ---
+frontend/screenshots/

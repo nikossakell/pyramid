@@ -94,22 +94,22 @@ watch(() => queue.sentCount, () => refresh())
   <div class="screen">
     <TopBar title="Σήμερα" />
     <main class="screen__body body">
-      <div>
-        <h2 class="t-display">{{ greeting() }}</h2>
-        <p v-if="firstDay" class="t-body muted">Η πρώτη σου μέρα. Ξεκίνα με ό,τι φας πρώτο σήμερα.</p>
+      <!-- Δύο στήλες μόνο σε expanded (8 + 4). Σε compact/medium οι wrappers είναι display: contents και το `order` δίνει
+           τη σημερινή σειρά: χαιρετισμός, C17, C11, C30, C12, C14, C13. -->
+      <div class="col col--main">
+        <div class="g g--greet">
+          <h2 class="t-display">{{ greeting() }}</h2>
+          <p v-if="firstDay" class="t-body muted">Η πρώτη σου μέρα. Ξεκίνα με ό,τι φας πρώτο σήμερα.</p>
+        </div>
+        <MealSlotList class="g g--slots" :meals="meals.mealsToday" :pending="pendingToday" />
+        <DayCompletePrompt v-if="showDayPrompt" class="g g--day" :completed="meals.todayCompleted" :day="meals.today" @confirm="completeDay" />
       </div>
-
-      <CardTeaser v-if="meals.loadedAt !== null || meals.fromCache" :unopened="meals.unopenedCards" :card-today="meals.cardToday" />
-
-      <MealSlotList :meals="meals.mealsToday" :pending="pendingToday" />
-
-      <DayCompletePrompt v-if="showDayPrompt" :completed="meals.todayCompleted" :day="meals.today" @confirm="completeDay" />
-
-      <FoodGroupSummary v-if="hasMealsToday && meals.shownGroups.length" :groups="meals.shownGroups" :present="meals.groupsToday" />
-
-      <FeedbackMessage v-if="meals.feedback && meals.feedback.messages.length" :messages="meals.feedback.messages" />
-
-      <WeekDots v-if="meals.meals.length" :meals="meals.meals" :today="meals.today" />
+      <div class="col col--side">
+        <CardTeaser v-if="meals.loadedAt !== null || meals.fromCache" class="g g--teaser" :unopened="meals.unopenedCards" :card-today="meals.cardToday" />
+        <FoodGroupSummary v-if="hasMealsToday && meals.shownGroups.length" class="g g--groups" :groups="meals.shownGroups" :present="meals.groupsToday" />
+        <FeedbackMessage v-if="meals.feedback && meals.feedback.messages.length" class="g g--feedback" :messages="meals.feedback.messages" />
+        <WeekDots v-if="meals.meals.length" class="g g--week" :meals="meals.meals" :today="meals.today" />
+      </div>
     </main>
     <BottomNav active="today" :badge="meals.unopenedCards > 0" />
 
@@ -120,4 +120,17 @@ watch(() => queue.sentCount, () => refresh())
 
 <style scoped>
 .body { gap: 16px; padding-bottom: 16px; }
+/* compact/medium: οι στήλες «διαλύονται» και το order δίνει την ίδια σειρά με πριν */
+.col { display: contents; }
+.g--greet { order: 1; } .g--teaser { order: 2; } .g--slots { order: 3; } .g--day { order: 4; }
+.g--groups { order: 5; } .g--feedback { order: 6; } .g--week { order: 7; }
+/* expanded: πλέγμα 12 στηλών. Αριστερά (8): χαιρετισμός, C11 MealSlotList, C30. Δεξιά (4): C12, C14, C13, C17. */
+@media (min-width: 1024px) {
+  .body { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; padding-top: 8px; padding-bottom: 40px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .col--main { grid-column: 1 / span 8; }
+  .col--side { grid-column: 9 / span 4; }
+  .g { order: 0; }
+  .g--groups { order: 1; } .g--feedback { order: 2; } .g--week { order: 3; } .g--teaser { order: 4; }
+}
 </style>

@@ -62,4 +62,11 @@ onMounted(start)
 @keyframes spin { to { transform: rotate(360deg); } }
 :root[data-motion='reduce'] .spinner { animation-duration: 2s; }
 .hint { padding: 0 8px 8px; }
+/* expanded: κάρτα 480 px στο κέντρο (χωρίς SideNav) */
+@media (min-width: 1024px) {
+  .body { flex: 0 0 auto; max-width: 480px; margin-inline: auto; margin-top: auto; padding: 56px 32px 40px; border: 1px solid var(--color-line); border-radius: 24px; box-shadow: var(--shadow-card); }
+  .body:has(+ footer) { border-bottom: 0; border-radius: 24px 24px 0 0; }
+  .body:not(:has(+ footer)) { margin-bottom: auto; }
+  .screen > footer { max-width: 480px; margin-inline: auto; margin-bottom: auto; padding: 0 32px 32px; border: 1px solid var(--color-line); border-top: 0; border-radius: 0 0 24px 24px; box-shadow: var(--shadow-card); }
+}
 </style>

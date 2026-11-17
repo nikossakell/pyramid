@@ -34,6 +34,17 @@
   --text-scale: 1;                 /* S17: Κανονικό 1 · Μεγάλο 1.125 · Πολύ μεγάλο 1.25 */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Breakpoints (τα media queries δεν διαβάζουν custom properties: οι ίδιες τιμές είναι στο composables/useBreakpoint.ts)
+     compact < 600 · medium 600–1023 · expanded ≥ 1024 */
+  --bp-medium: 600px;
+  --bp-expanded: 1024px;
+  --content-max-medium: 640px;     /* medium: μία στήλη στο κέντρο */
+  --content-max-expanded: 1200px;  /* expanded: πλάτος περιεχομένου, κεντραρισμένο δίπλα στο SideNav */
+  --sidenav-width: 240px;
+  --header-height: 72px;           /* expanded: η TopBar ως κεφαλίδα σελίδας */
+  --dialog-max: 560px;             /* expanded: bottom sheets ως κεντραρισμένα dialogs */
+  --drawer-width: 400px;           /* expanded: M01 HelpSheet ως συρτάρι δεξιά */
 }
 
 :root[data-theme='dark'] {

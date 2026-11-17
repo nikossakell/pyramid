@@ -23,7 +23,7 @@ function goBack(): void {
   <header class="topbar" :class="{ 'topbar--dark': tone === 'dark', 'topbar--noback': !back }">
     <button v-if="back" type="button" class="iconbtn" aria-label="Πίσω" @click="goBack"><Icon name="back" :size="24" :stroke="2.4" /></button>
     <h1 class="title">{{ title }}</h1>
-    <button v-if="avatar" type="button" class="iconbtn" aria-label="Προφίλ και ρυθμίσεις" @click="router.push({ name: 'profile' })">
+    <button v-if="avatar" type="button" class="iconbtn iconbtn--avatar" aria-label="Προφίλ και ρυθμίσεις" @click="router.push({ name: 'profile' })">
       <AvatarBadge :avatar-id="me.avatarId" :size="40" />
     </button>
     <HelpButton />
@@ -39,4 +39,12 @@ function goBack(): void {
 .topbar--dark { background: #000; color: #fff; }
 .title { flex: 1; min-width: 0; font-family: var(--font-display); font-weight: 600; font-size: calc(24px * var(--text-scale)); line-height: 30px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .iconbtn { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 999px; color: inherit; display: inline-flex; align-items: center; justify-content: center; padding: 0; flex: none; }
+@media (hover: hover) { .iconbtn:hover { background: var(--color-surface); } }
+/* expanded: κεφαλίδα σελίδας 72 px, τίτλος αριστερά, HelpButton πάντα δεξιά (R7)· το avatar ζει στο SideNav */
+@media (min-width: 1024px) {
+  .topbar { height: var(--header-height); padding: 0 32px; gap: 12px; }
+  .topbar--noback { padding-left: 32px; }
+  .title { font-size: calc(30px * var(--text-scale)); line-height: 36px; }
+  .iconbtn--avatar { display: none; }
+}
 </style>

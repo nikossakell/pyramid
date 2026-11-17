@@ -1,7 +1,9 @@
 <script setup lang="ts">
 // S06 Κάμερα (ΚΡΑΤΑ): ζωντανή προεπισκόπηση με getUserMedia, χωρίς γκαλερί, χωρίς αποθήκευση εικόνας. Λήψη → canvas
-// (≤ 448 px, JPEG, χωρίς EXIF) → Blob στη μνήμη → S07. β: άδεια αρνήθηκε → «Γράψε» / «Ψάξε». γ: ήπια υπόδειξη για σκοτάδι.
-// Η ροή της κάμερας σταματά σε κάθε έξοδο από την οθόνη.
+// (≤ 448 px, JPEG, χωρίς EXIF) → Blob στη μνήμη → S07. β: άδεια αρνήθηκε ή καμία συσκευή → «Γράψε» / «Ψάξε». γ: ήπια
+// υπόδειξη για σκοτάδι. Η ροή της κάμερας σταματά σε κάθε έξοδο από την οθόνη.
+// expanded: viewfinder τετράγωνο έως 640 px στο κέντρο, οδηγίες σε πάνελ δεξιά, κουμπί λήψης κάτω από το viewfinder,
+// πλήκτρο Space = λήψη. Ούτε στο desktop υπάρχει επιλογή αρχείου (design brief S06).
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import TopBar from '@/components/ui/TopBar.vue'
@@ -64,30 +66,51 @@ async function shoot(): Promise<void> {
   }
 }
 
-onMounted(startCamera)
-onBeforeUnmount(stopCamera)
+/** Space = λήψη (desktop), εκτός αν η εστίαση είναι σε κουμπί ή σύνδεσμο (εκεί το Space τα ενεργοποιεί ήδη). */
+function onKey(e: KeyboardEvent): void {
+  if (e.key !== ' ' || e.repeat) return
+  const t = e.target as HTMLElement | null
+  if (t && (t.tagName === 'BUTTON' || t.tagName === 'A' || t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
+  e.preventDefault()
+  shoot()
+}
+
+onMounted(() => { startCamera(); document.addEventListener('keydown', onKey) })
+onBeforeUnmount(() => { stopCamera(); document.removeEventListener('keydown', onKey) })
 </script>
 
 <template>
   <div class="screen screen--dark">
     <TopBar title="Φωτογραφία" back tone="dark" :avatar="false" back-to="/log" />
 
-    <template v-if="!denied">
-      <main class="view">
-        <span class="hint">Μόνο το πιάτο, χωρίς πρόσωπα</span>
-        <div class="frame">
-          <video ref="video" class="video" playsinline muted autoplay />
-          <span class="corner c1" /><span class="corner c2" /><span class="corner c3" /><span class="corner c4" />
-          <span v-if="flash" class="flash" aria-hidden="true" />
-        </div>
-        <span v-if="dark" class="status" role="status"><Icon name="info" :size="18" />Λίγο σκοτεινά. Δοκίμασε πιο κοντά στο φως.</span>
-        <span v-else class="caption">Βάλε το πιάτο μέσα στο πλαίσιο</span>
-      </main>
-      <footer class="controls">
-        <button type="button" class="shutter" aria-label="Λήψη φωτογραφίας" :disabled="!ready || busy" @click="shoot"><span class="shutter__in" /></button>
-        <button type="button" class="link" @click="router.replace({ name: 'text' })">Γράψε αντί για φωτογραφία</button>
-      </footer>
-    </template>
+    <div v-if="!denied" class="cam">
+      <div class="stage">
+        <main class="view">
+          <span class="hint">Μόνο το πιάτο, χωρίς πρόσωπα</span>
+          <div class="frame">
+            <video ref="video" class="video" playsinline muted autoplay />
+            <span class="corner c1" /><span class="corner c2" /><span class="corner c3" /><span class="corner c4" />
+            <span v-if="flash" class="flash" aria-hidden="true" />
+          </div>
+          <span v-if="dark" class="status" role="status"><Icon name="info" :size="18" />Λίγο σκοτεινά. Δοκίμασε πιο κοντά στο φως.</span>
+          <span v-else class="caption">Βάλε το πιάτο μέσα στο πλαίσιο</span>
+        </main>
+        <footer class="controls">
+          <button type="button" class="shutter" aria-label="Λήψη φωτογραφίας" :disabled="!ready || busy" @click="shoot"><span class="shutter__in" /></button>
+          <button type="button" class="link" @click="router.replace({ name: 'text' })">Γράψε αντί για φωτογραφία</button>
+        </footer>
+      </div>
+      <!-- expanded μόνο: οδηγίες δίπλα στο viewfinder -->
+      <aside class="guide" aria-label="Οδηγίες φωτογραφίας">
+        <h2 class="t-heading">Πώς να τη βγάλεις</h2>
+        <ul class="tips">
+          <li><span class="tipico"><Icon name="camera" :size="22" /></span><span>Βάλε ολόκληρο το πιάτο μέσα στο πλαίσιο.</span></li>
+          <li><span class="tipico"><Icon name="user" :size="22" /></span><span>Μόνο το φαγητό, χωρίς πρόσωπα.</span></li>
+          <li><span class="tipico"><Icon name="info" :size="22" /></span><span>Αν είναι σκοτεινά, πήγαινε πιο κοντά στο φως.</span></li>
+        </ul>
+        <p class="t-label guide__key">Πάτα το κουμπί ή το πλήκτρο Space για λήψη.</p>
+      </aside>
+    </div>
 
     <template v-else>
       <main class="deniedbody">
@@ -104,6 +127,9 @@ onBeforeUnmount(stopCamera)
 </template>
 
 <style scoped>
+/* compact/medium: οι wrappers δεν αλλάζουν τη διάταξη· ο οδηγός δεν εμφανίζεται */
+.cam, .stage { display: contents; }
+.guide { display: none; }
 .view { flex: 1; min-height: 0; background: var(--color-camera-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 16px; }
 .hint { background: rgba(0, 0, 0, 0.72); color: #fff; font-size: calc(15px * var(--text-scale)); font-weight: 600; border-radius: 999px; padding: 8px 16px; }
 .frame { position: relative; width: min(290px, 80vw); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
@@ -125,4 +151,20 @@ onBeforeUnmount(stopCamera)
 .deniedbody { flex: 1; background: var(--color-camera-bg); color: #fff; display: flex; flex-direction: column; justify-content: center; gap: 18px; padding: 28px; }
 .darkfooter { background: #000; padding-top: 20px; }
 .whitebtn { color: #fff; border-color: #fff; background: transparent; }
+
+/* expanded: viewfinder έως 640 px στο κέντρο, οδηγίες δεξιά, λήψη κάτω από το viewfinder */
+@media (min-width: 1024px) {
+  .cam { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; flex: 1; min-height: 0; width: 100%; max-width: var(--content-max-expanded); margin-inline: auto; padding: 0 32px 32px; background: var(--color-camera-bg); }
+  .stage { display: flex; flex-direction: column; min-width: 0; }
+  .view { padding: 24px 0; gap: 20px; }
+  .frame { width: min(640px, 100%, calc(100dvh - var(--header-height) - 340px)); }
+  .video { border-radius: 28px; }
+  .controls { height: auto; padding: 8px 0 0; background: transparent; }
+  .guide { display: flex; flex-direction: column; gap: 16px; align-self: center; background: #000; color: #fff; border-radius: 24px; padding: 24px; }
+  .tips { display: flex; flex-direction: column; gap: 12px; font-size: calc(15px * var(--text-scale)); line-height: 1.4; }
+  .tips li { display: flex; align-items: center; gap: 12px; }
+  .tipico { width: 40px; height: 40px; border-radius: 999px; border: 2px solid #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .guide__key { color: #b7b1a9; }
+  .deniedbody { max-width: 640px; margin-inline: auto; width: 100%; }
+}
 </style>

@@ -62,4 +62,9 @@ const emit = defineEmits<{ portion: [v: Portion]; remove: []; restore: []; alter
 .alts { display: flex; flex-wrap: wrap; gap: 8px; padding-right: 8px; }
 .searchchip { border: 0; font-weight: 700; }
 .ask { align-self: flex-start; border: 0; background: transparent; padding: 0 2px; font-weight: 600; font-size: calc(14px * var(--text-scale)); text-decoration: underline; min-height: 32px; }
+/* expanded (S08): η μερίδα επιλέγεται inline από το segmented control· το M02 δεν χρειάζεται */
+@media (min-width: 1024px) {
+  .ask { display: none; }
+  .row { padding: 14px 10px 14px 18px; }
+}
 </style>

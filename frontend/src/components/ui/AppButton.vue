@@ -22,6 +22,7 @@ withDefaults(defineProps<{ variant?: 'primary' | 'secondary' | 'ghost' | 'destru
 .btn--secondary:active { background: var(--color-surface); }
 .btn--ghost { background: transparent; color: var(--color-text); }
 .btn--ghost:active { background: var(--color-surface); }
+@media (hover: hover) { .btn--secondary:hover:not(:disabled), .btn--ghost:hover:not(:disabled) { background: var(--color-surface); filter: none; } }
 .btn--destructive { background: var(--color-ink); color: var(--color-on-ink); }
 .btn--destructive:active { background: var(--color-ink-pressed); }
 .btn:disabled { background: var(--color-line); color: var(--color-text-muted); border-color: var(--color-line); cursor: default; }

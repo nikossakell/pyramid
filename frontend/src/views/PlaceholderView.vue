@@ -32,3 +32,11 @@ function ack(): void {
     <AIDisclosure :open="m08" @close="ack" />
   </div>
 </template>
+
+<style scoped>
+/* expanded: η κάρτα (C26) στο κέντρο της περιοχής περιεχομένου */
+@media (min-width: 1024px) {
+  .screen__body { justify-content: center; align-items: center; }
+  .screen__body > * { width: 100%; max-width: 560px; }
+}
+</style>

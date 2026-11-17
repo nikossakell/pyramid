@@ -71,16 +71,21 @@ onBeforeUnmount(() => { if (unlockTimer) clearTimeout(unlockTimer) })
   <div class="screen">
     <TopBar :avatar="false" />
     <main class="screen__body body">
-      <PyramidMark :height="44" wordmark :word-size="40" />
-      <h2 class="t-display">Μπες με το κλειδί σου</h2>
-      <p class="t-body muted">Το κλειδί σού το έδωσε η ερευνητική ομάδα.</p>
-      <form class="form" @submit.prevent="submit">
-        <AccessKeyInput v-model="key" :error="error" :locked="locked" :locked-text="lockedText ?? undefined" @update:model-value="error = null" />
-        <div class="stack">
-          <AppButton type="submit" :disabled="!canSubmit" :loading="busy">Μπες</AppButton>
-          <AppButton variant="ghost" @click="noKeyOpen = true">Δεν έχω κλειδί</AppButton>
-        </div>
-      </form>
+      <div class="hero">
+        <PyramidMark :height="44" wordmark :word-size="40" />
+        <p class="hero__line t-body muted">Κατέγραψε τι τρως, μάθε για το φαγητό, κέρδισε κάρτες.</p>
+      </div>
+      <div class="formcard">
+        <h2 class="t-display">Μπες με το κλειδί σου</h2>
+        <p class="t-body muted">Το κλειδί σού το έδωσε η ερευνητική ομάδα.</p>
+        <form class="form" @submit.prevent="submit">
+          <AccessKeyInput v-model="key" :error="error" :locked="locked" :locked-text="lockedText ?? undefined" @update:model-value="error = null" />
+          <div class="stack">
+            <AppButton type="submit" :disabled="!canSubmit" :loading="busy">Μπες</AppButton>
+            <AppButton variant="ghost" @click="noKeyOpen = true">Δεν έχω κλειδί</AppButton>
+          </div>
+        </form>
+      </div>
     </main>
 
     <BottomSheet :open="noKeyOpen" labelled-by="nokey-title" @close="noKeyOpen = false">
@@ -94,6 +99,16 @@ onBeforeUnmount(() => { if (unlockTimer) clearTimeout(unlockTimer) })
 
 <style scoped>
 .body { padding: 28px 20px 40px; gap: 18px; }
+/* compact/medium: ίδια ροή με πριν (οι wrappers δεν αλλάζουν τη διάταξη)· η φράση του hero είναι μόνο για το desktop */
+.hero, .formcard { display: contents; }
+.hero__line { display: none; }
 .form { display: flex; flex-direction: column; gap: 18px; margin-top: 4px; }
+/* expanded: δύο μισά, αριστερά πάνελ ταυτότητας, δεξιά κάρτα φόρμας 420 px */
+@media (min-width: 1024px) {
+  .body { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 48px; padding: 32px 32px 56px; min-height: calc(100dvh - var(--header-height)); }
+  .hero { display: flex; flex-direction: column; justify-content: center; gap: 20px; background: var(--color-surface); border-radius: 28px; padding: 48px 40px; min-height: 420px; }
+  .hero__line { display: block; font-size: calc(18px * var(--text-scale)); max-width: 28ch; }
+  .formcard { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 420px; justify-self: center; border: 1px solid var(--color-line); border-radius: 24px; padding: 32px 28px; box-shadow: var(--shadow-card); }
+}
 .sheet-ico { width: 56px; height: 56px; border-radius: 18px; background: var(--color-surface); display: flex; align-items: center; justify-content: center; }
 </style>

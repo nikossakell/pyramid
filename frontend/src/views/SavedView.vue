@@ -45,7 +45,7 @@ onMounted(() => log.start())        // το πρόχειρο τελείωσε· 
         </li>
       </ul>
     </main>
-    <footer class="screen__footer">
+    <footer class="screen__footer foot">
       <AppButton variant="secondary" icon="chat" @click="router.replace({ name: 'chat' })">Θέλεις να μάθεις κάτι για αυτό το γεύμα;</AppButton>
       <AppButton @click="router.replace({ name: 'today' })">Τέλος</AppButton>
     </footer>
@@ -61,4 +61,9 @@ onMounted(() => log.start())        // το πρόχειρο τελείωσε· 
 .g { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 72px; }
 .gico { width: 52px; height: 52px; border-radius: 16px; background: var(--color-positive); color: #fff; display: flex; align-items: center; justify-content: center; }
 .glbl { font-weight: 600; }
+/* expanded: κάρτα 480 px στο κέντρο (dialog), όχι πλήρης οθόνη */
+@media (min-width: 1024px) {
+  .body { flex: 0 0 auto; max-width: 480px; margin-inline: auto; margin-top: auto; padding: 48px 32px 24px; border: 1px solid var(--color-line); border-bottom: 0; border-radius: 24px 24px 0 0; box-shadow: var(--shadow-card); }
+  .foot { max-width: 480px; margin-inline: auto; margin-bottom: auto; padding: 0 32px 32px; border: 1px solid var(--color-line); border-top: 0; border-radius: 0 0 24px 24px; box-shadow: var(--shadow-card); }
+}
 </style>

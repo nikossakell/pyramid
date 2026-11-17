@@ -24,4 +24,9 @@ const router = useRouter()
 
 <style scoped>
 .body { align-items: center; justify-content: center; text-align: center; padding: 28px; gap: 18px; }
+/* expanded: κάρτα 480 px στο κέντρο (χωρίς SideNav: δημόσια οθόνη) */
+@media (min-width: 1024px) {
+  .body { flex: 0 0 auto; max-width: 480px; margin-inline: auto; margin-top: auto; padding: 48px 32px 24px; border: 1px solid var(--color-line); border-bottom: 0; border-radius: 24px 24px 0 0; box-shadow: var(--shadow-card); }
+  .screen > footer { max-width: 480px; margin-inline: auto; margin-bottom: auto; padding: 0 32px 32px; border: 1px solid var(--color-line); border-top: 0; border-radius: 0 0 24px 24px; box-shadow: var(--shadow-card); }
+}
 </style>

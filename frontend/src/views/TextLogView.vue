@@ -97,4 +97,11 @@ async function go(): Promise<void> {
 .dark { border-radius: 16px; align-items: flex-start; padding: 14px 16px; }
 .bold { font-weight: 700; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+/* expanded: κεντραρισμένη στήλη 720 px· τα «Συνηθισμένα» σε μία σειρά κάτω από το πεδίο */
+@media (min-width: 1024px) {
+  .body, .screen > .screen__footer { max-width: 720px; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .chip { white-space: nowrap; }
+  .ta { min-height: 180px; }
+}
 </style>

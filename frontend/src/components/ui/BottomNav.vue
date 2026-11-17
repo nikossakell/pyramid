@@ -46,4 +46,6 @@ const tabs2 = [
 .logbtn { width: 60px; height: 60px; border-radius: 999px; background: var(--color-primary); color: #000; border: 4px solid var(--color-bg); display: flex; align-items: center; justify-content: center; margin-top: -22px; box-shadow: var(--shadow-card); }
 .label--log { font-weight: 700; }
 .badge { position: absolute; top: 2px; right: 10px; width: 12px; height: 12px; border-radius: 999px; background: var(--color-secondary); border: 2px solid var(--color-bg); }
+/* expanded: το SideNav (App.vue) παίρνει τη θέση του */
+@media (min-width: 1024px) { .nav { display: none; } }
 </style>

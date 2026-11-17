@@ -27,4 +27,8 @@ import Icon from '@/components/ui/Icon.vue'
 .body { align-items: center; text-align: center; padding: 24px; gap: 22px; }
 .headline { font-size: calc(34px * var(--text-scale)); line-height: 1.18; }
 .meet { width: 100%; display: flex; gap: 12px; align-items: flex-start; text-align: left; }
+/* expanded: κάρτα 480 px στο κέντρο (χωρίς SideNav) */
+@media (min-width: 1024px) {
+  .body { flex: 0 0 auto; max-width: 480px; margin-inline: auto; margin-block: auto; padding: 48px 32px 32px; border: 1px solid var(--color-line); border-radius: 24px; box-shadow: var(--shadow-card); }
+}
 </style>

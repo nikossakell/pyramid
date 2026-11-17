@@ -101,14 +101,14 @@ onBeforeUnmount(() => { controller?.abort(); if (slowTimer) clearTimeout(slowTim
       <span v-else class="blob blob--still" aria-hidden="true" />
     </main>
 
-    <footer v-if="state === 'slow'" class="screen__footer">
+    <footer v-if="state === 'slow'" class="screen__footer foot">
       <AppButton variant="secondary" @click="cancel">Ακύρωση και γράψ' το</AppButton>
     </footer>
-    <footer v-else-if="state === 'timeout'" class="screen__footer">
+    <footer v-else-if="state === 'timeout'" class="screen__footer foot">
       <AppButton @click="toText">Γράψε τι έφαγες</AppButton>
       <AppButton variant="secondary" @click="retry">Δοκίμασε ξανά</AppButton>
     </footer>
-    <footer v-else-if="state === 'unavailable'" class="screen__footer">
+    <footer v-else-if="state === 'unavailable'" class="screen__footer foot">
       <AppButton @click="toText">Γράψε τι έφαγες</AppButton>
       <AppButton variant="secondary" @click="toSearch">Ψάξε φαγητό</AppButton>
     </footer>
@@ -129,4 +129,10 @@ onBeforeUnmount(() => { controller?.abort(); if (slowTimer) clearTimeout(slowTim
 .bar__in { display: block; width: 40%; height: 100%; border-radius: 999px; background: var(--color-primary); animation: slide 1.4s ease-in-out infinite; }
 @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
 :root[data-motion='reduce'] .bar__in { animation-duration: 3s; }
+/* expanded: ίδιο περιεχόμενο μέσα σε κάρτα 480 px στο κέντρο· το footer ανήκει στην ίδια κάρτα */
+@media (min-width: 1024px) {
+  .body { flex: 0 0 auto; max-width: 480px; margin-inline: auto; margin-block: auto; padding: 48px 32px 32px; border: 1px solid var(--color-line); border-radius: 24px; box-shadow: var(--shadow-card); }
+  .body:has(+ .foot) { border-bottom: 0; border-radius: 24px 24px 0 0; margin-bottom: 0; }
+  .foot { max-width: 480px; margin-inline: auto; margin-bottom: auto; padding: 0 32px 32px; border: 1px solid var(--color-line); border-top: 0; border-radius: 0 0 24px 24px; box-shadow: var(--shadow-card); }
+}
 </style>

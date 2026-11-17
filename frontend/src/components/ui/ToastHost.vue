@@ -26,4 +26,7 @@ const ui = useUiStore()
 .act { height: 44px; padding: 0 12px; border: 0; border-radius: 12px; background: #2b2926; color: #fff; font-weight: 700; font-size: calc(14px * var(--text-scale)); }
 .toast-enter-active, .toast-leave-active { transition: opacity var(--motion), transform var(--motion); }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(8px); }
+@media (min-width: 600px) and (max-width: 1023.98px) { .host { left: 50%; right: auto; transform: translateX(-50%); width: min(100% - 32px, var(--content-max-medium)); } }
+/* expanded: κάτω δεξιά (C27) */
+@media (min-width: 1024px) { .host { left: auto; right: 24px; bottom: 24px; width: 380px; } }
 </style>

@@ -2,7 +2,7 @@
 // S05 Νέα καταγραφή (ΚΡΑΤΑ): sheet πάνω από το S04. Θέση γεύματος (από την ώρα ή από την κενή θέση), τρεις δρόμοι:
 // Φωτογραφία (ανενεργή όταν photo_status ≠ available, mockups_delta §2), Γράψε, Ψάξε. Το tag «Προπόνηση» είναι
 // ΑΠΟΦΑΣΗ χωρίς πεδίο στο backend: δεν υλοποιείται. API: GET /me (photo_status) σε κάθε άνοιγμα.
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import Icon from '@/components/ui/Icon.vue'
@@ -20,14 +20,26 @@ const router = useRouter()
 const log = useLogStore()
 const me = useMeStore()
 
-const photoOk = computed(() => me.photoStatus === 'available')
+// Χωρίς κάμερα στη συσκευή (π.χ. υπολογιστής χωρίς webcam, ή browser χωρίς getUserMedia) η «Φωτογραφία» είναι ανενεργή με το
+// ίδιο ουδέτερο κείμενο (delta §2)· ποτέ επιλογή αρχείου ή γκαλερί (S06). Το enumerateDevices δεν ζητά άδεια.
+const hasCamera = ref(true)
+const photoOk = computed(() => me.photoStatus === 'available' && hasCamera.value)
 const title = computed(() => (props.fromSlot ? slotLabel(log.slot) : 'Νέα καταγραφή'))
+
+async function detectCamera(): Promise<void> {
+  if (!navigator.mediaDevices?.getUserMedia) { hasCamera.value = false; return }
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices?.()
+    if (Array.isArray(devices) && devices.length > 0) hasCamera.value = devices.some((d) => d.kind === 'videoinput')
+  } catch { /* άγνωστο: αφήνουμε την κάμερα να δοκιμάσει (S06β καλύπτει την αποτυχία) */ }
+}
 
 onMounted(() => {
   // Πρόχειρο σε εξέλιξη (π.χ. «Πίσω» από το S08) δεν χάνεται· καθαρίζει μόνο με «Ακύρωση» ή μετά το S11.
   if (log.active.length === 0 && !log.text) log.start(props.slot ?? undefined)
   else if (props.slot) log.slot = props.slot
   me.load(true).catch(() => {})
+  detectCamera()
 })
 
 const OPTIONS = [
@@ -85,4 +97,13 @@ function go(key: 'camera' | 'text' | 'search'): void {
 .txt { display: flex; flex-direction: column; gap: 2px; }
 .t1 { font-weight: 600; font-size: calc(17px * var(--text-scale)); }
 .t2 { font-size: calc(13px * var(--text-scale)); line-height: 1.35; }
+/* expanded: dialog με τις τρεις επιλογές ως τρεις κάρτες σε μία σειρά, η επιλογή γεύματος από πάνω */
+@media (min-width: 1024px) {
+  .head { margin-top: -52px; }
+  .opts { flex-direction: row; align-items: stretch; }
+  .opt { flex: 1 1 0; min-width: 0; flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px 14px 14px; min-height: 150px; }
+  .ico { width: 52px; height: 52px; }
+  .txt { gap: 4px; }
+  @media (hover: hover) { .opt:not(.opt--off):hover { background: var(--color-surface); filter: none; } }
+}
 </style>
